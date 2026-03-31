@@ -1,0 +1,94 @@
+{
+  "categories": [
+    {
+      "id": "onyx-essence",
+      "title": "The Onyx Essence",
+      "description": "Pure. Polished. Timeless. A minimalist staple designed for those who find beauty in simplicity.",
+      "image_url": "/catsection/img2.jpeg"
+    },
+    {
+      "id": "earthbound-soul",
+      "title": "Earthbound Soul",
+      "description": "Raw textures meet refined craftsmanship. Each bead tells a story of the earth’s natural artistry.",
+      "image_url": "/earthbound-soul.png"
+    },
+    {
+      "id": "intricate-weaves",
+      "title": "Intricate Weaves",
+      "description": "Strength in every strand. A testament to the patient art of slow-handcrafting.",
+      "image_url": "/intricate-weaves.png"
+    }
+  ],
+  "products": [
+    {
+      "id": "eth-o-001",
+      "name": "Classic Onyx Bracelet",
+      "description": "Pure. Polished. Timeless. A minimalist staple designed for those who find beauty in simplicity.",
+      "price": 1200,
+      "category_id": "onyx-essence",
+      "stock": 25,
+      "image_url": "/catsection/img2.jpeg"
+    },
+    {
+      "id": "eth-o-002",
+      "name": "Midnight Glow Band",
+      "description": "Smooth black beads tightly strung together, reflecting light beautifully.",
+      "price": 1500,
+      "category_id": "onyx-essence",
+      "stock": 10,
+      "image_url": "/catsection/img2.jpeg"
+    },
+    {
+      "id": "eth-e-001",
+      "name": "Textured Stone Bracelet",
+      "description": "Raw textures meet refined craftsmanship. Each bead tells a story of the earth’s natural artistry.",
+      "price": 1800,
+      "category_id": "earthbound-soul",
+      "stock": 15,
+      "image_url": "/earthbound-soul.png"
+    },
+    {
+      "id": "eth-e-002",
+      "name": "Volcanic Matter Wristband",
+      "description": "Matte, irregular volcanic beads bringing a grounding, earthy feel.",
+      "price": 2200,
+      "category_id": "earthbound-soul",
+      "stock": 5,
+      "image_url": "/earthbound-soul.png"
+    },
+    {
+      "id": "eth-w-001",
+      "name": "Intricate Braided Band",
+      "description": "Strength in every strand. A testament to the patient art of slow-handcrafting.",
+      "price": 950,
+      "category_id": "intricate-weaves",
+      "stock": 30,
+      "image_url": "/intricate-weaves.png"
+    },
+    {
+      "id": "eth-w-002",
+      "name": "Obsidian Twine Custom",
+      "description": "Thickly braided thread creating an unbreakable bond and timeless aesthetic.",
+      "price": 1100,
+      "category_id": "intricate-weaves",
+      "stock": 20,
+      "image_url": "/intricate-weaves.png"
+    }
+  ],
+  "users": [
+    {
+      "id": "u-1774868159928",
+      "name": "asnif",
+      "email": "asnifkl@gmail.com",
+      "password": "123456",
+      "order_history": []
+    },
+    {
+      "id": "u-1774892067753",
+      "name": "ASNIF asi",
+      "email": "asnifkl1@gmail.com",
+      "password": "123456",
+      "order_history": []
+    }
+  ]
+}
