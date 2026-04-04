@@ -21,66 +21,31 @@
   ],
   "products": [
     {
-      "id": "eth-o-001",
-      "name": "Classic Onyx Bracelet",
-      "description": "Pure. Polished. Timeless. A minimalist staple designed for those who find beauty in simplicity.",
-      "price": 1200,
+      "id": "p-1775221289957",
+      "name": "beads",
+      "description": "handmade",
+      "price": 150,
       "category_id": "onyx-essence",
-      "stock": 25,
-      "image_url": "/catsection/img2.jpeg"
-    },
-    {
-      "id": "eth-o-002",
-      "name": "Midnight Glow Band",
-      "description": "Smooth black beads tightly strung together, reflecting light beautifully.",
-      "price": 1500,
-      "category_id": "onyx-essence",
-      "stock": 10,
-      "image_url": "/catsection/img2.jpeg"
-    },
-    {
-      "id": "eth-e-001",
-      "name": "Textured Stone Bracelet",
-      "description": "Raw textures meet refined craftsmanship. Each bead tells a story of the earth’s natural artistry.",
-      "price": 1800,
-      "category_id": "earthbound-soul",
-      "stock": 15,
-      "image_url": "/earthbound-soul.png"
-    },
-    {
-      "id": "eth-e-002",
-      "name": "Volcanic Matter Wristband",
-      "description": "Matte, irregular volcanic beads bringing a grounding, earthy feel.",
-      "price": 2200,
-      "category_id": "earthbound-soul",
-      "stock": 5,
-      "image_url": "/earthbound-soul.png"
-    },
-    {
-      "id": "eth-w-001",
-      "name": "Intricate Braided Band",
-      "description": "Strength in every strand. A testament to the patient art of slow-handcrafting.",
-      "price": 950,
-      "category_id": "intricate-weaves",
-      "stock": 30,
-      "image_url": "/intricate-weaves.png"
-    },
-    {
-      "id": "eth-w-002",
-      "name": "Obsidian Twine Custom",
-      "description": "Thickly braided thread creating an unbreakable bond and timeless aesthetic.",
-      "price": 1100,
-      "category_id": "intricate-weaves",
-      "stock": 20,
-      "image_url": "/intricate-weaves.png"
+      "stock": 1,
+      "image_urls": [
+        "/catsection/img1.jpeg",
+        "/catsection/img2.jpeg",
+        "/catsection/img3.jpeg"
+      ],
+      "isAvailable": true,
+      "shippingPrice": 50,
+      "showLowStock": true,
+      "image_url": "/catsection/img1.jpeg"
     }
   ],
   "users": [
     {
       "id": "u-1774868159928",
-      "name": "asnif",
-      "email": "asnifkl@gmail.com",
-      "password": "123456",
+      "name": "ethoss.in",
+      "email": "ethoss.in@gmail.com",
+      "password": "asnifnafila",
+      "role": "admin",
+      "isBlocked": false,
       "order_history": []
     },
     {
@@ -88,7 +53,58 @@
       "name": "ASNIF asi",
       "email": "asnifkl1@gmail.com",
       "password": "123456",
+      "role": "user",
+      "isBlocked": false,
       "order_history": []
+    },
+    {
+      "id": "u-1775222618211",
+      "name": "Admin",
+      "email": "admin@admin.com",
+      "password": "password",
+      "order_history": []
+    },
+    {
+      "id": "u-1775222718781",
+      "name": "Admin",
+      "email": "admin@ethoss.in",
+      "password": "password",
+      "order_history": []
+    }
+  ],
+  "studio_submissions": [],
+  "feedbacks": [
+    {
+      "userName": "Test User",
+      "userEmail": "test@test.com",
+      "comment": "Love the beads!",
+      "rating": 5,
+      "image_url": "",
+      "status": "approved",
+      "id": "f-1775223281563"
+    }
+  ],
+  "orders": [
+    {
+      "id": "ord-1775224381290",
+      "customerName": "Asnif",
+      "customerEmail": "asnif@ethoss.in",
+      "phone": "+91 94977 16349",
+      "address": "Ethoss Studio, Kerala, 676303",
+      "productName": "Onyx Essence Beads",
+      "quantity": 2,
+      "totalPrice": 400,
+      "status": "Shipped",
+      "paymentStatus": "Paid",
+      "createdAt": "2026-04-03T13:53:00.000Z",
+      "items": [
+        {
+          "name": "Onyx Essence Beads",
+          "quantity": 2,
+          "price": 150,
+          "shipping": 50
+        }
+      ]
     }
   ]
 }

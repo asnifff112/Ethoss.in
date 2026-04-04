@@ -1,213 +1,302 @@
 "use client";
 
-import { useState } from "react";
-import { useParams } from "next/navigation";
+import { useState, useRef, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, ShoppingBag, Check, Minus, Plus } from "lucide-react";
+import { ArrowLeft, Check, Minus, Plus, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 import productsData from "@/data/db.json";
-import { useCartStore } from "@/store/cartStore";
+import { useCartStore, useAuthStore } from "@/store/cartStore";
+import gsap from "gsap";
 
 export default function ProductPage() {
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
   const product = productsData.products.find((p) => p.id === id);
   const addItem = useCartStore((s) => s.addItem);
+  const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
+  
   const [added, setAdded] = useState(false);
   const [qty, setQty] = useState(1);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   if (!product) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center px-6">
-        <p className="text-primary/50 text-sm uppercase tracking-widest mb-4">
-          Product not found
-        </p>
-        <Link
-          href="/shop"
-          className="text-sm underline text-primary tracking-widest uppercase"
-        >
+        <p className="text-primary/50 text-sm uppercase tracking-widest mb-4">Product not found</p>
+        <Link href="/shop" className="text-sm underline text-primary tracking-widest uppercase">
           Back to Shop
         </Link>
       </div>
     );
   }
 
+  // Image gallery from database
+  const images = product.image_urls || [product.image_url];
+  const oldPrice = product.price + 300; 
+  
+  // Refined Status Logic
+  const isOutOfStock = !product.isAvailable || product.stock <= 0;
+  const isLowStock = !isOutOfStock && (product.showLowStock || (product.stock > 0 && product.stock <= 5));
+  const isLimitedEdition = !isOutOfStock && !isLowStock;
+
+  const categoryName = productsData.categories.find(c => c.id === product.category_id)?.title || "COLLECTION";
+  
+  // ... (auto-swipe and GSAP effects remain the same)
+
+  // Auto swiping logic
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveIndex((current) => {
+        const next = (current + 1) % images.length;
+        if (scrollRef.current) {
+          const scrollWidth = scrollRef.current.clientWidth;
+          scrollRef.current.scrollTo({
+            left: scrollWidth * next,
+            behavior: "smooth"
+          });
+        }
+        return next;
+      });
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [images.length]);
+
+  // Handle manual scroll snapping updates
+  const handleScroll = () => {
+    if (scrollRef.current) {
+      const scrollX = scrollRef.current.scrollLeft;
+      const index = Math.round(scrollX / scrollRef.current.clientWidth);
+      if (index !== activeIndex) {
+        setActiveIndex(index);
+      }
+    }
+  };
+
+  // GSAP Entrance
+  useEffect(() => {
+    let ctx = gsap.context(() => {
+      gsap.fromTo(".product-anim-item", 
+        { y: 20, opacity: 0 }, 
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.6,
+          stagger: 0.1,
+          ease: "power3.out"
+        }
+      );
+    }, containerRef);
+    return () => ctx.revert();
+  }, [id]);
+
   const handleAdd = () => {
+    if (!isLoggedIn) {
+      toast.error("Please sign in to continue shopping.", {
+        description: "You need an account to add items to your cart.",
+      });
+      router.push("/login");
+      return;
+    }
     for (let i = 0; i < qty; i++) addItem(product);
     setAdded(true);
-    toast.success("Added to Cart", {
-      description: `${qty}x ${product.name}`,
-    });
+    toast.success("Added to Cart", { description: `${qty}x ${product.name}` });
     setTimeout(() => setAdded(false), 2200);
   };
 
-  // Similar products (same category, different id)
-  const similar = productsData.products
-    .filter((p) => p.category_id === product.category_id && p.id !== product.id)
-    .slice(0, 3);
-
-  // Link to collection
-  const categoryLink = `/category/${product.category_id}`;
+  const handleBuyNow = () => {
+    if (!isLoggedIn) {
+      toast.error("Please sign in to continue shopping.", {
+        description: "You need an account to add items to your cart.",
+      });
+      router.push("/login");
+      return;
+    }
+    handleAdd();
+    toast.success("Proceeding to Checkout...");
+    router.push("/cart");
+  };
 
   return (
-    <div className="pb-32 lg:pb-16">
-      {/* Back link */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <Link
-          href={categoryLink}
-          className="inline-flex items-center gap-2 text-xs tracking-widest uppercase text-primary/50 hover:text-primary transition-colors"
-        >
-          <ArrowLeft size={14} /> Back to Collection
+    <div ref={containerRef} className="pb-32 lg:pb-16 bg-[#faf5ec] min-h-[100svh] text-primary">
+      {/* Top Bar */}
+      <div className="product-anim-item max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 mt-2">
+        <Link href={`/shop`} className="inline-flex items-center gap-2 text-[10px] tracking-[0.2em] font-bold uppercase text-primary/60 hover:text-primary transition-colors">
+          <ArrowLeft size={14} /> Back
         </Link>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto md:px-6 lg:px-8 pb-10">
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-16">
-          {/* Image */}
-          <div className="aspect-[3/4] lg:aspect-[4/5] rounded-2xl overflow-hidden bg-primary/5 relative lg:sticky lg:top-24">
-            <Image
-              src={product.image_url}
-              alt={product.name}
-              fill
-              priority
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              className="object-cover"
-            />
+          
+          {/* SECTION 1: Image Gallery */}
+          <div className="product-anim-item w-full flex flex-col items-center relative">
+            {/* Main Slider */}
+            <div 
+              ref={scrollRef}
+              onScroll={handleScroll}
+              className="w-full aspect-[4/5] md:rounded-[4px] overflow-x-auto snap-x snap-mandatory flex hide-scrollbar"
+              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            >
+              {images.map((img, idx) => (
+                <div key={idx} className="w-full flex-shrink-0 snap-center relative bg-[#EFEFEF]">
+                   <Image
+                      src={img}
+                      alt={`${product.name} view ${idx + 1}`}
+                      fill
+                      priority={idx === 0}
+                      sizes="(max-width: 1024px) 100vw, 50vw"
+                      className="object-cover"
+                    />
+                </div>
+              ))}
+            </div>
+            {/* JSX styling for webkit hide-scrollbar if not in global css */}
+            <style jsx>{`
+              .hide-scrollbar::-webkit-scrollbar {
+                display: none;
+              }
+            `}</style>
+
+            {/* Thumbnails */}
+            <div className="flex justify-center gap-3 mt-4 px-4 md:px-0">
+              {images.map((img, idx) => (
+                <button 
+                  key={idx}
+                  onClick={() => {
+                    setActiveIndex(idx);
+                    if (scrollRef.current) {
+                      scrollRef.current.scrollTo({ left: scrollRef.current.clientWidth * idx, behavior: "smooth" });
+                    }
+                  }}
+                  className={`w-12 h-14 md:w-16 md:h-20 relative rounded-sm overflow-hidden transition-all ${
+                    activeIndex === idx ? "border-2 border-primary" : "border border-transparent opacity-60"
+                  }`}
+                >
+                  <Image src={img} alt="" fill sizes="48px" className="object-cover" />
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* Details */}
-          <div className="py-4 lg:py-8 flex flex-col">
-            <p className="text-[10px] tracking-[0.3em] uppercase text-primary/40 mb-3">
-              Ethoss Series
-            </p>
-            <h1 className="text-2xl sm:text-3xl font-serif text-primary uppercase tracking-wider leading-tight mb-4">
-              {product.name}
-            </h1>
-            <p className="text-2xl text-primary font-medium mb-6">
-              ₹{product.price.toLocaleString()}
-            </p>
+          {/* Details Section */}
+          <div className="px-5 md:px-0 py-4 lg:py-8 flex flex-col h-full">
+            
+            {/* SECTION 2: Badges & Title */}
+            <div className="product-anim-item mt-2 mb-4">
+              <div className="h-6 mb-2">
+                {(!product.isAvailable || product.stock <= 0) && (
+                  <span className="inline-block bg-red-600 text-white text-[10px] font-bold px-4 py-1.5 uppercase tracking-widest rounded-full shadow-lg border border-red-500/30 animate-status-blink mb-6">
+                    OUT OF STOCK
+                  </span>
+                )}
+                {product.isAvailable && product.stock > 0 && (product.showLowStock || product.stock <= 5) && (
+                  <span className="inline-block bg-primary text-background text-[10px] font-bold px-4 py-1.5 uppercase tracking-widest rounded-full shadow-lg border border-accent/20 animate-status-pulse mb-6">
+                    RUNNING OUT OF STOCK
+                  </span>
+                )}
+                {isLimitedEdition && (
+                  <span className="text-[10px] md:text-xs font-bold tracking-[0.15em] uppercase text-primary/40">
+                    LIMITED EDITION
+                  </span>
+                )}
+              </div>
+              <p className="text-[10px] tracking-[0.25em] font-bold uppercase text-primary/50 mb-1">
+                CATEGORY: {categoryName}
+              </p>
+              <h1 className="text-2xl sm:text-3xl font-bold font-serif text-primary uppercase tracking-wider leading-tight mb-2">
+                {product.name}
+              </h1>
+            </div>
 
-            <p className="text-primary/60 text-sm leading-relaxed mb-8">
-              {product.description}
-            </p>
+            {/* SECTION 3: Price & Description */}
+            <div className="product-anim-item mb-8">
+              <div className="flex items-end gap-3 mb-6">
+                <p className="text-[15px] font-bold text-primary/40 line-through font-sans">
+                  ₹{oldPrice.toLocaleString()}.00
+                </p>
+                <p className="text-[20px] font-bold font-sans text-[#b22222]">
+                  ₹{product.price.toLocaleString()}.00
+                </p>
+              </div>
+              
+              <p className="text-primary/70 text-[13px] tracking-wide leading-relaxed max-w-xl">
+                {product.description}
+              </p>
+            </div>
 
-            {/* Stock */}
-            <p className="text-xs text-primary/40 tracking-widest uppercase mb-8">
-              {product.stock > 0
-                ? `${product.stock} in stock`
-                : "Out of stock"}
-            </p>
-
-            {/* Quantity */}
-            <div className="flex items-center gap-4 mb-8">
-              <span className="text-xs tracking-widest uppercase text-primary/50">
-                Qty
-              </span>
-              <div className="flex items-center border border-primary/15 rounded-lg overflow-hidden">
-                <button
-                  onClick={() => setQty(Math.max(1, qty - 1))}
-                  className="px-3 py-2.5 text-primary/60 hover:bg-primary/5 transition-colors"
-                >
-                  <Minus size={14} />
-                </button>
-                <span className="px-4 py-2.5 text-sm font-medium text-primary min-w-[40px] text-center">
-                  {qty}
+            {/* SECTION 4: Actions (Quantity & Buttons) */}
+            <div className="product-anim-item mt-auto pt-6 flex flex-col gap-5">
+              {/* Quantity Selector */}
+              <div className="flex items-center gap-4">
+                <span className="text-[10px] sm:text-xs font-bold tracking-[0.2em] uppercase text-primary/50 w-8">
+                  QTY:
                 </span>
+                <div className="flex items-center border border-primary/20 bg-transparent rounded-[2px] overflow-hidden">
+                  <button
+                    onClick={() => setQty(Math.max(1, qty - 1))}
+                    disabled={isOutOfStock}
+                    className="px-4 py-3 text-primary hover:bg-primary/5 transition-colors active:scale-95 disabled:opacity-30"
+                  >
+                    <Minus size={14} strokeWidth={2} />
+                  </button>
+                  <span className="px-4 py-3 text-sm font-bold text-primary min-w-[40px] text-center font-sans">
+                    {isOutOfStock ? 0 : qty}
+                  </span>
+                  <button
+                    onClick={() => setQty(qty + 1)}
+                    disabled={isOutOfStock || qty >= product.stock}
+                    className="px-4 py-3 text-primary hover:bg-primary/5 transition-colors active:scale-95 disabled:opacity-30"
+                  >
+                    <Plus size={14} strokeWidth={2} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Side-by-side CTA Buttons */}
+              <div className="flex items-center gap-3 w-full mt-2">
                 <button
-                  onClick={() => setQty(qty + 1)}
-                  className="px-3 py-2.5 text-primary/60 hover:bg-primary/5 transition-colors"
+                  onClick={handleAdd}
+                  disabled={isOutOfStock}
+                  className={`flex-1 py-[16px] flex items-center justify-center gap-2 text-[11px] tracking-[0.15em] uppercase font-bold transition-all duration-300 rounded-[2px] active:scale-95 ${
+                    added
+                      ? "bg-[#183a21] text-[#faf5ec] border border-[#183a21]"
+                      : "bg-transparent border border-primary text-primary hover:bg-primary/5"
+                  } disabled:opacity-40 disabled:cursor-not-allowed`}
                 >
-                  <Plus size={14} />
+                  {added ? <Check size={16} strokeWidth={1.5} /> : <ShoppingBag size={14} strokeWidth={2} />} 
+                  {added ? "Added" : "Add to Bag"}
+                </button>
+                
+                <button
+                  onClick={handleBuyNow}
+                  disabled={isOutOfStock}
+                  className="flex-1 py-[16px] flex items-center justify-center text-[11px] tracking-[0.15em] uppercase font-bold bg-primary text-[#faf5ec] hover:bg-primary/90 transition-all duration-300 rounded-[2px] active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed border border-primary"
+                >
+                  Buy Now
                 </button>
               </div>
             </div>
 
-            {/* Add to Cart */}
-            <button
-              onClick={handleAdd}
-              disabled={product.stock === 0}
-              className={`w-full xl:w-80 py-4 flex items-center justify-center gap-3 text-sm tracking-[0.2em] uppercase font-medium transition-all duration-300 rounded-lg ${
-                added
-                  ? "bg-green-700 text-white"
-                  : "bg-primary text-background hover:bg-primary/90"
-              } disabled:opacity-40 disabled:cursor-not-allowed`}
-            >
-              {added ? (
-                <>
-                  <Check size={16} /> Added to Cart
-                </>
-              ) : (
-                <>
-                  <ShoppingBag size={16} /> Add to Cart
-                </>
-              )}
-            </button>
-
-            {/* Details list */}
-            <div className="mt-10 pt-8 border-t border-primary/10 space-y-4">
+            {/* Delivery/Policy standard texts */}
+            <div className="product-anim-item mt-10 pt-6 border-t border-primary/10 space-y-3">
               {[
-                "Handmade in Kerala",
-                "Sustainably sourced materials",
-                "Free shipping on orders above ₹2,000",
+                "100% Secure Checkout",
+                "Priority Insured Shipping",
+                "Handcrafted in Kerala",
               ].map((d) => (
-                <p
-                  key={d}
-                  className="text-xs text-primary/50 tracking-widest uppercase flex items-center gap-2"
-                >
-                  <span className="w-1 h-1 rounded-full bg-primary/30" />
+                <p key={d} className="text-[10px] text-primary/60 font-bold tracking-widest uppercase flex items-center gap-3">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary/40" />
                   {d}
                 </p>
               ))}
             </div>
+
           </div>
         </div>
-
-        {/* Similar Products */}
-        {similar.length > 0 && (
-          <div className="mt-20 sm:mt-28">
-            <h2 className="text-xl font-serif text-primary uppercase tracking-wider mb-8">
-              You may also like
-            </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6">
-              {similar.map((p) => (
-                <Link key={p.id} href={`/product/${p.id}`} className="group">
-                  <div className="aspect-[3/4] rounded-xl overflow-hidden bg-primary/5 relative">
-                    <Image
-                      src={p.image_url}
-                      alt={p.name}
-                      fill
-                      sizes="(max-width: 640px) 50vw, 33vw"
-                      className="object-cover group-hover:scale-105 transition-transform duration-700"
-                    />
-                  </div>
-                  <h3 className="mt-3 text-xs font-medium text-primary tracking-wider uppercase line-clamp-1">
-                    {p.name}
-                  </h3>
-                  <p className="text-primary/50 text-xs mt-1">
-                    ₹{p.price.toLocaleString()}
-                  </p>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Mobile sticky CTA */}
-      <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-background/90 backdrop-blur-lg border-t border-primary/10 p-4 z-40">
-        <button
-          onClick={handleAdd}
-          disabled={product.stock === 0}
-          className={`w-full py-3.5 flex items-center justify-center gap-2 text-sm tracking-[0.15em] uppercase font-medium rounded-lg transition-all duration-300 ${
-            added
-              ? "bg-green-700 text-white"
-              : "bg-primary text-background"
-          } disabled:opacity-40`}
-        >
-          {added
-            ? "Added ✓"
-            : `Add to Cart — ₹${(product.price * qty).toLocaleString()}`}
-        </button>
       </div>
     </div>
   );

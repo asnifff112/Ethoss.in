@@ -7,6 +7,7 @@ export interface Product {
   name: string;
   description: string;
   price: number;
+  shippingPrice: number;
   category_id: string;
   stock: number;
   image_url: string;
@@ -22,6 +23,7 @@ interface CartState {
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
+  setCart: (items: CartItem[]) => void;
 }
 
 export const useCartStore = create<CartState>()(
@@ -50,6 +52,7 @@ export const useCartStore = create<CartState>()(
               : state.items.map((i) => (i.id === id ? { ...i, quantity: qty } : i)),
         })),
       clearCart: () => set({ items: [] }),
+      setCart: (items) => set({ items }),
     }),
     { name: "ethoss-cart-storage" }
   )
@@ -79,6 +82,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  role: "admin" | "user";
   phone?: string;
   addresses?: Address[];
   order_history?: Order[];
@@ -98,7 +102,10 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       isLoggedIn: false,
       login: (userData) => set({ user: userData, isLoggedIn: true }),
-      logout: () => set({ user: null, isLoggedIn: false }),
+      logout: () => {
+        useCartStore.getState().clearCart();
+        set({ user: null, isLoggedIn: false });
+      },
       updateProfile: (data) =>
         set((state) => ({
           user: state.user ? { ...state.user, ...data } : null,
@@ -107,3 +114,9 @@ export const useAuthStore = create<AuthState>()(
     { name: "ethoss-auth-storage" }
   )
 );
+
+// Helper for admin protection logic
+export const checkAdmin = () => {
+  const user = useAuthStore.getState().user;
+  return user?.role === "admin";
+};

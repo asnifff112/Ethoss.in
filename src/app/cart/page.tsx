@@ -9,9 +9,12 @@ export default function CartPage() {
   const removeItem = useCartStore((s) => s.removeItem);
   const updateQuantity = useCartStore((s) => s.updateQuantity);
   
-  // Total നേരിട്ട് ഇവിടെ കണക്കാക്കുന്നു
-  const total = useCartStore((s) => 
+  const subtotal = useCartStore((s) => 
     s.items.reduce((acc, item) => acc + item.price * item.quantity, 0)
+  );
+
+  const totalShipping = useCartStore((s) => 
+    s.items.reduce((acc, item) => acc + (item.shippingPrice || 0) * item.quantity, 0)
   );
 
   return (
@@ -56,9 +59,14 @@ export default function CartPage() {
                   <h3 className="text-sm font-medium text-primary uppercase tracking-wider truncate">
                     {item.name}
                   </h3>
-                  <p className="text-primary/50 text-xs mt-1">
-                    ₹{item.price.toLocaleString()}
-                  </p>
+                  <div className="flex flex-col gap-0.5 mt-1">
+                    <p className="text-primary/50 text-xs">
+                        Base: ₹{item.price.toLocaleString()}
+                    </p>
+                    <p className="text-[10px] text-primary/30 uppercase tracking-widest font-bold">
+                        Ship: ₹{item.shippingPrice || 0}
+                    </p>
+                  </div>
 
                   <div className="flex items-center gap-3 mt-3">
                     <button
@@ -87,7 +95,7 @@ export default function CartPage() {
                     <Trash2 size={16} />
                   </button>
                   <p className="text-sm font-medium text-primary font-serif">
-                    ₹{(item.price * item.quantity).toLocaleString()}
+                    ₹{((item.price + (item.shippingPrice || 0)) * item.quantity).toLocaleString()}
                   </p>
                 </div>
               </div>
@@ -97,17 +105,17 @@ export default function CartPage() {
           {/* Summary Section */}
           <div className="border-t border-primary/5 pt-8 space-y-4">
             <div className="flex justify-between text-xs uppercase tracking-widest text-primary/60">
-              <span>Subtotal</span>
-              <span>₹{total.toLocaleString()}</span>
+              <span>Order Subtotal</span>
+              <span>₹{subtotal.toLocaleString()}</span>
             </div>
             <div className="flex justify-between text-xs uppercase tracking-widest text-primary/60">
-              <span>Shipping</span>
-              <span>{total >= 2000 ? "Complimentary" : "₹99"}</span>
+              <span>Shipping Charges</span>
+              <span>₹{totalShipping.toLocaleString()}</span>
             </div>
             <div className="flex justify-between text-lg font-medium text-primary pt-4 border-t border-primary/5 font-serif">
-              <span>Total Amount</span>
+              <span>Grand Total</span>
               <span>
-                ₹{(total >= 2000 ? total : total + 99).toLocaleString()}
+                ₹{(subtotal + totalShipping).toLocaleString()}
               </span>
             </div>
           </div>

@@ -2,14 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Package, Users, LogOut } from "lucide-react";
+import { LayoutDashboard, Package, Users, LogOut, Sparkles, MessageSquare, ShoppingBag } from "lucide-react";
 
 export function AdminSidebar() {
   const pathname = usePathname();
 
   const navItems = [
     { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
+    { label: "Orders", href: "/admin/orders", icon: ShoppingBag },
     { label: "Products", href: "/admin/products", icon: Package },
+    { label: "Studio", href: "/admin/studio", icon: Sparkles },
+    { label: "Feedback", href: "/admin/feedback", icon: MessageSquare },
     { label: "Users", href: "/admin/users", icon: Users },
   ];
 

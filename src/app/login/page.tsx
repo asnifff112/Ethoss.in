@@ -5,11 +5,12 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { toast } from "sonner";
-import { useAuthStore } from "@/store/cartStore";
+import { useAuthStore, useCartStore } from "@/store/cartStore";
 
 export default function LoginPage() {
   const router = useRouter();
   const login = useAuthStore((s) => s.login);
+  const setCart = useCartStore((s) => s.setCart);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -32,8 +33,21 @@ export default function LoginPage() {
       } else {
         // Pass the user payload to the Zustand store
         login(data);
+        
+        // Populate cart store with saved backend cart if available
+        // Assuming backend sends users' saved cart in data.cart
+        if (data.cart) {
+          setCart(data.cart);
+        }
+
         toast.success("Successfully logged in");
-        router.push("/profile");
+        
+        // Role-based redirection
+        if (data.role === "admin") {
+          router.push("/admin");
+        } else {
+          router.push("/");
+        }
       }
     } catch (error) {
       toast.error("An error occurred. Please try again.");

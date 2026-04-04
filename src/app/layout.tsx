@@ -21,10 +21,7 @@ export default function RootLayout({
         {/* Navbar */}
         <Navbar />
 
-        {/* Main Content: 
-          'min-h-[100svh]' ഉപയോഗിക്കുന്നത് മൊബൈൽ ബ്രൗസർ ബാറുകൾ കാരണം 
-          കണ്ടന്റ് മറഞ്ഞുപോകാതിരിക്കാൻ സഹായിക്കും.
-        */}
+      
         <main className="relative min-h-[100svh] w-full flex flex-col">
           {children}
         </main>

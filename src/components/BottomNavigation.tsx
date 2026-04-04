@@ -2,20 +2,20 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, ShoppingBag, ShoppingCart, User } from "lucide-react";
+import { Home, Shirt, ShoppingCart, Truck } from "lucide-react";
 
 export function BottomNavigation() {
   const pathname = usePathname();
 
   const navItems = [
     { label: "Home", href: "/", icon: Home },
-    { label: "Shop", href: "/about", icon: ShoppingBag }, // Usually shop, reusing about for now based on scaffold map
+    { label: "Products", href: "/shop", icon: Shirt },
     { label: "Cart", href: "/cart", icon: ShoppingCart },
-    { label: "Profile", href: "/login", icon: User },
+    { label: "Track", href: "/track", icon: Truck },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-primary/10 pb-safe sm:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-primary/10 pb-safe md:hidden">
       <ul className="flex justify-around items-center h-16 px-2">
         {navItems.map((item) => {
           const Icon = item.icon;
