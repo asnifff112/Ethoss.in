@@ -17,7 +17,7 @@ export interface CartItem extends Product {
   quantity: number;
 }
 
-interface CartState {
+export interface CartState {
   items: CartItem[];
   addItem: (product: Product) => void;
   removeItem: (productId: string) => void;
@@ -57,7 +57,6 @@ export const useCartStore = create<CartState>()(
     { name: "ethoss-cart-storage" }
   )
 );
-
 /* ── Auth & Profile Types ── */
 export interface Order {
   order_id: string;

@@ -55,7 +55,20 @@
       "password": "123456",
       "role": "user",
       "isBlocked": false,
-      "order_history": []
+      "order_history": [],
+      "phone": "9876543210",
+      "addresses": [
+        {
+          "houseNo": "123",
+          "buildingName": "",
+          "area": "Testing Lane",
+          "postOffice": "Kochi",
+          "landmark": "",
+          "pincode": "682001",
+          "district": "Ernakulam",
+          "state": "Kerala"
+        }
+      ]
     },
     {
       "id": "u-1775222618211",
@@ -70,6 +83,26 @@
       "email": "admin@ethoss.in",
       "password": "password",
       "order_history": []
+    },
+    {
+      "id": "u-1775388510572",
+      "name": "nihall",
+      "email": "asnifkl@gmail.com",
+      "password": "asnif123",
+      "order_history": [],
+      "phone": "9746156270",
+      "addresses": [
+        {
+          "houseNo": "pulikkalakath house",
+          "buildingName": "202",
+          "area": "anappadi, chettippadi",
+          "postOffice": "chettippadi",
+          "landmark": "",
+          "pincode": "676319",
+          "district": "malappuram",
+          "state": "Kerala"
+        }
+      ]
     }
   ],
   "studio_submissions": [],

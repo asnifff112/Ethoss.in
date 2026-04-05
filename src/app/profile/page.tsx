@@ -36,32 +36,55 @@ export default function ProfilePage() {
 
   if (!isLoggedIn || !user) return null;
 
-  const handleUpdateProfile = () => {
+  const handleUpdateProfile = async () => {
     if (!profileData.phone || profileData.phone.length < 10) {
       toast.error("Please enter a valid 10-digit phone number");
       return;
     }
 
-    updateProfile({
-      name: profileData.fullName,
-      phone: profileData.phone,
-      addresses: [
-        {
-          houseNo: profileData.houseNo,
-          buildingName: profileData.buildingName,
-          area: profileData.area,
-          postOffice: profileData.postOffice,
-          landmark: profileData.landmark,
-          pincode: profileData.pincode,
-          district: profileData.district,
-          state: profileData.state,
-        },
-      ],
-    });
+    const newAddresses = [
+      {
+        houseNo: profileData.houseNo,
+        buildingName: profileData.buildingName,
+        area: profileData.area,
+        postOffice: profileData.postOffice,
+        landmark: profileData.landmark,
+        pincode: profileData.pincode,
+        district: profileData.district,
+        state: profileData.state,
+      },
+    ];
 
-    toast.success("Profile Updated", {
-      description: "Shipping details for ETHOSS.IN saved.",
-    });
+    try {
+      const res = await fetch("/api/auth/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user.id,
+          name: profileData.fullName,
+          phone: profileData.phone,
+          addresses: newAddresses,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to update profile");
+      }
+
+      updateProfile({
+        name: profileData.fullName,
+        phone: profileData.phone,
+        addresses: newAddresses,
+      });
+
+      toast.success("Profile Updated", {
+        description: "Shipping details for ETHOSS.IN saved securely.",
+      });
+    } catch (err) {
+      toast.error("Error", {
+        description: "Failed to save profile details to the server.",
+      });
+    }
   };
 
   const initials = profileData.fullName
@@ -83,6 +106,11 @@ export default function ProfilePage() {
           </div>
           <div>
             <h1 className="text-2xl sm:text-3xl font-serif text-primary uppercase tracking-[0.2em]">Account</h1>
+            {user.email && (
+              <p className="text-[11px] font-medium text-primary mt-2 flex items-center gap-1.5 opacity-80">
+                 <Mail size={13} /> {user.email}
+              </p>
+            )}
             <p className="text-[10px] text-primary/40 uppercase tracking-widest mt-1">Managed securely by ETHOSS</p>
           </div>
         </div>
