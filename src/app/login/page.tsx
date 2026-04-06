@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuthStore, useCartStore } from "@/store/cartStore";
 
@@ -11,9 +11,25 @@ export default function LoginPage() {
   const router = useRouter();
   const login = useAuthStore((s) => s.login);
   const setCart = useCartStore((s) => s.setCart);
+  const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
+  const user = useAuthStore((s) => s.user);
+  const hasHydrated = useAuthStore((s) => s._hasHydrated);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Redirect already-authenticated users away from login page
+  useEffect(() => {
+    if (!hasHydrated) return;
+    if (isLoggedIn && user) {
+      if (user.role === "admin") {
+        router.replace("/admin");
+      } else {
+        router.replace("/");
+      }
+    }
+  }, [hasHydrated, isLoggedIn, user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,22 +47,22 @@ export default function LoginPage() {
       if (!res.ok) {
         toast.error(data.message || "Invalid credentials");
       } else {
-        // Pass the user payload to the Zustand store
+        // Persist user in Zustand (which persists to localStorage via persist middleware)
         login(data);
-        
-        // Populate cart store with saved backend cart if available
-        // Assuming backend sends users' saved cart in data.cart
+
+        // Sync backend cart if available
         if (data.cart) {
           setCart(data.cart);
         }
 
-        toast.success("Successfully logged in");
-        
-        // Role-based redirection
+        toast.success("Welcome back!");
+
+        // Strict role-based redirect
         if (data.role === "admin") {
-          router.push("/admin");
+          // Admin MUST always go to the admin dashboard — never to user-side
+          router.replace("/admin");
         } else {
-          router.push("/");
+          router.replace("/");
         }
       }
     } catch (error) {
@@ -55,6 +71,15 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
+
+  // Show spinner while checking if already logged in
+  if (!hasHydrated || (isLoggedIn && user)) {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center">
+        <Loader2 className="animate-spin text-primary/30" size={28} />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-[70vh] flex flex-col items-center justify-center px-6">
@@ -100,7 +125,15 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full bg-primary text-background py-4 text-sm tracking-[0.2em] uppercase font-medium hover:bg-primary/90 transition-colors rounded-lg mt-4 flex items-center justify-center gap-2 disabled:opacity-50"
           >
-            {loading ? "Signing In..." : "Sign In"} <ArrowRight size={14} />
+            {loading ? (
+              <>
+                <Loader2 size={16} className="animate-spin" /> Signing In...
+              </>
+            ) : (
+              <>
+                Sign In <ArrowRight size={14} />
+              </>
+            )}
           </button>
         </form>
 

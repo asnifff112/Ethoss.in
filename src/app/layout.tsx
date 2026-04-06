@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import AuthGuard from "@/components/AuthGuard";
 import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
@@ -21,10 +22,12 @@ export default function RootLayout({
         {/* Navbar */}
         <Navbar />
 
-      
-        <main className="relative min-h-[100svh] w-full flex flex-col">
-          {children}
-        </main>
+        {/* Global role-based route guard */}
+        <AuthGuard>
+          <main className="relative min-h-[100svh] w-full flex flex-col">
+            {children}
+          </main>
+        </AuthGuard>
 
         {/* Footer */}
         <Footer />

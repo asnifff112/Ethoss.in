@@ -139,7 +139,7 @@ export default function ShopPage() {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-[2px] md:gap-8 px-[1px] md:px-0 mt-[2px] md:mt-0">
         {filtered.map((p: any) => {
           const isOutOfStock = !p.isAvailable || p.stock <= 0;
-          const isLowStock = !isOutOfStock && (p.showLowStock || (p.stock > 0 && p.stock <= 5));
+          const isLowStock = !isOutOfStock && (p.showLowStock || (p.stock > 0 && p.stock <= 3));
           const oldPrice = p.price + 300; 
 
           return (
@@ -163,8 +163,8 @@ export default function ShopPage() {
                     OUT OF STOCK
                   </span>
                 )}
-                {p.isAvailable && p.stock > 0 && (p.showLowStock || p.stock <= 5) && (
-                  <span className="absolute top-4 left-4 z-10 bg-primary text-background text-[10px] font-bold px-3 py-1 uppercase tracking-widest rounded-full shadow-lg border border-accent/20 animate-status-pulse">
+                {p.isAvailable && p.stock > 0 && (p.showLowStock || p.stock <= 3) && (
+                  <span className="absolute top-4 left-4 z-10 bg-amber-500 text-white text-[10px] font-bold px-3 py-1 uppercase tracking-widest rounded-full shadow-lg border border-amber-400/30 animate-status-pulse">
                     RUNNING OUT OF STOCK
                   </span>
                 )}

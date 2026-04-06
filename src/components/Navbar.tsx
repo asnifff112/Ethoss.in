@@ -31,6 +31,7 @@ export default function Navbar() {
   // ഇതാണ് ശരിയായ രീതി
   const itemCount = useCartStore((s) => s.items.reduce((total, item) => total + item.quantity, 0));
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
+  const userRole = useAuthStore((s) => s.user?.role);
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 20);
@@ -60,7 +61,8 @@ export default function Navbar() {
     return () => ctx.revert();
   }, [open]);
 
-  if (pathname?.startsWith("/admin")) {
+  // Hide entirely on admin routes OR if user is an admin (AuthGuard will redirect them)
+  if (pathname?.startsWith("/admin") || userRole === "admin") {
     return null;
   }
 

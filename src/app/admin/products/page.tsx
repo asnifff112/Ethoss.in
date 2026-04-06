@@ -49,7 +49,7 @@ export default function AdminProductsPage() {
 
   const fetchProducts = async () => {
     try {
-      const res = await fetch("/api/admin/products");
+      const res = await fetch("http://localhost:5000/products");
       const data = await res.json();
       if (res.ok) setProducts(data);
     } catch (err) {
@@ -91,18 +91,28 @@ export default function AdminProductsPage() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    const validImages = formData.image_urls.filter(url => url.trim() !== "");
+    if (validImages.length < 3) {
+      toast.error("Please provide exactly 3 product image URLs for a cinematic display.");
+      return;
+    }
+
     const method = editingProduct ? "PUT" : "POST";
     const payload = {
       ...formData,
+      image_urls: validImages,
       price: parseFloat(formData.price),
       shippingPrice: parseFloat(formData.shippingPrice) || 0,
       stock: parseInt(formData.stock),
-      id: editingProduct?.id
+      id: editingProduct?.id || `p-${Date.now()}`
     };
 
     try {
-      const res = await fetch("/api/admin/products", {
+      const url = editingProduct 
+        ? `http://localhost:5000/products/${editingProduct.id}` 
+        : "http://localhost:5000/products";
+      
+      const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
@@ -124,10 +134,8 @@ export default function AdminProductsPage() {
     if (!confirm("Are you sure you want to delete this product?")) return;
     
     try {
-      const res = await fetch("/api/admin/products", {
+      const res = await fetch(`http://localhost:5000/products/${id}`, {
         method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id })
       });
 
       if (res.ok) {
@@ -147,7 +155,7 @@ export default function AdminProductsPage() {
 
   const toggleAvailability = async (product: Product) => {
     try {
-      const res = await fetch("/api/admin/products", {
+      const res = await fetch(`http://localhost:5000/products/${product.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

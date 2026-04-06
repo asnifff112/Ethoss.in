@@ -90,6 +90,8 @@ export interface User {
 interface AuthState {
   user: User | null;
   isLoggedIn: boolean;
+  _hasHydrated: boolean;
+  setHasHydrated: (val: boolean) => void;
   login: (userData: User) => void;
   logout: () => void;
   updateProfile: (data: Partial<User>) => void;
@@ -100,6 +102,8 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       user: null,
       isLoggedIn: false,
+      _hasHydrated: false,
+      setHasHydrated: (val) => set({ _hasHydrated: val }),
       login: (userData) => set({ user: userData, isLoggedIn: true }),
       logout: () => {
         useCartStore.getState().clearCart();
@@ -110,7 +114,12 @@ export const useAuthStore = create<AuthState>()(
           user: state.user ? { ...state.user, ...data } : null,
         })),
     }),
-    { name: "ethoss-auth-storage" }
+    {
+      name: "ethoss-auth-storage",
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
+    }
   )
 );
 

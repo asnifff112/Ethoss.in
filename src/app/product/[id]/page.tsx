@@ -35,12 +35,13 @@ export default function ProductPage() {
   }
 
   // Image gallery from database
-  const images = product.image_urls || [product.image_url];
+  const images = product.image_urls || [];
+  const primaryImageUrl = images[0] || "/catsection/img1.jpeg";
   const oldPrice = product.price + 300; 
   
   // Refined Status Logic
   const isOutOfStock = !product.isAvailable || product.stock <= 0;
-  const isLowStock = !isOutOfStock && (product.showLowStock || (product.stock > 0 && product.stock <= 5));
+  const isLowStock = !isOutOfStock && (product.showLowStock || (product.stock > 0 && product.stock <= 3));
   const isLimitedEdition = !isOutOfStock && !isLowStock;
 
   const categoryName = productsData.categories.find(c => c.id === product.category_id)?.title || "COLLECTION";
@@ -101,7 +102,7 @@ export default function ProductPage() {
       router.push("/login");
       return;
     }
-    for (let i = 0; i < qty; i++) addItem(product);
+    for (let i = 0; i < qty; i++) addItem({ ...product, image_url: primaryImageUrl });
     setAdded(true);
     toast.success("Added to Cart", { description: `${qty}x ${product.name}` });
     setTimeout(() => setAdded(false), 2200);
@@ -193,8 +194,8 @@ export default function ProductPage() {
                     OUT OF STOCK
                   </span>
                 )}
-                {product.isAvailable && product.stock > 0 && (product.showLowStock || product.stock <= 5) && (
-                  <span className="inline-block bg-primary text-background text-[10px] font-bold px-4 py-1.5 uppercase tracking-widest rounded-full shadow-lg border border-accent/20 animate-status-pulse mb-6">
+                {product.isAvailable && product.stock > 0 && (product.showLowStock || product.stock <= 3) && (
+                  <span className="inline-block bg-amber-500 text-white text-[10px] font-bold px-4 py-1.5 uppercase tracking-widest rounded-full shadow-lg border border-amber-400/30 animate-status-pulse mb-6">
                     RUNNING OUT OF STOCK
                   </span>
                 )}
