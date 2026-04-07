@@ -1,55 +1,104 @@
 "use client";
 
-import { useState } from "react";
-import { UploadCloud, CheckCircle, Smartphone, ArrowLeft } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useCartStore, selectTotal } from "@/store/cartStore";
+import Image from "next/image";
+import { ArrowLeft, ArrowRight } from "lucide-react";
+import { useCartStore, useAuthStore } from "@/store/cartStore";
+import { useCheckoutStore, CheckoutForm } from "@/store/checkoutStore";
+import gsap from "gsap";
+import { toast } from "sonner";
 
-const UPI_ID = "9746156270@ybl";
+const KERALA_DISTRICTS = [
+  "Alappuzha", "Ernakulam", "Idukki", "Kannur", "Kasaragod", "Kollam",
+  "Kottayam", "Kozhikode", "Malappuram", "Palakkad", "Pathanamthitta",
+  "Thiruvananthapuram", "Thrissur", "Wayanad", "Outside Kerala"
+];
 
 export default function CheckoutPage() {
+  const router = useRouter();
+  const containerRef = useRef<HTMLDivElement>(null);
+
   const items = useCartStore((s) => s.items);
-  const clearCart = useCartStore((s) => s.clearCart);
-  const total = useCartStore(selectTotal);
-  const finalTotal = total >= 2000 ? total : total + 99;
+  const user = useAuthStore((s) => s.user);
+  const setCheckoutForm = useCheckoutStore((s) => s.setForm);
 
-  const [step, setStep] = useState<"shipping" | "payment" | "done">("shipping");
-  const [form, setForm] = useState({
-    name: "",
-    phone: "",
-    house_name: "",
-    area: "",
-    town: "",
+  const subtotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  const shipping = subtotal >= 2000 ? 0 : 100;
+  const finalTotal = subtotal + shipping;
+
+  const [form, setForm] = useState<CheckoutForm>({
+    firstName: "",
+    lastName: "",
+    addressLine1: "",
+    addressLine2: "",
+    city: "",
     district: "",
-    state: "",
+    state: "India - Kerala",
     pincode: "",
+    mobile: "",
+    altMobile: "",
+    notes: "",
   });
-  const [utr, setUtr] = useState("");
-  const [file, setFile] = useState<File | null>(null);
 
-  // Build UPI deep-link
-  const upiLink = `upi://pay?pa=${UPI_ID}&pn=ETHOSS&am=${finalTotal}&cu=INR`;
+  // Smart Auto-Fill from user profile
+  useEffect(() => {
+    if (user) {
+      const nameParts = user.name ? user.name.split(" ") : ["", ""];
+      const primaryAddress = user.addresses?.[0] || {};
 
-  const handleShippingSubmit = (e: React.FormEvent) => {
+      setForm((prev) => ({
+        ...prev,
+        firstName: nameParts[0] || prev.firstName,
+        lastName: nameParts.slice(1).join(" ") || prev.lastName,
+        mobile: user.phone || prev.mobile,
+        addressLine1: primaryAddress.houseNo || prev.addressLine1,
+        addressLine2: primaryAddress.area || prev.addressLine2,
+        district: primaryAddress.district || prev.district,
+        state: primaryAddress.state || prev.state,
+        pincode: primaryAddress.pincode || prev.pincode,
+        city: primaryAddress.postOffice || prev.city,
+      }));
+    }
+  }, [user]);
+
+  // GSAP Entrance
+  useEffect(() => {
+    let ctx = gsap.context(() => {
+      gsap.from(".checkout-anim", {
+        opacity: 0,
+        y: 10,
+        duration: 0.5,
+        stagger: 0.1,
+        ease: "power2.out"
+      });
+    }, containerRef);
+    return () => ctx.revert();
+  }, [items.length]);
+
+  const handleContinue = (e: React.FormEvent) => {
     e.preventDefault();
-    setStep("payment");
+
+    if (!form.district) {
+      toast.error("Please select your district.");
+      return;
+    }
+
+    // Save billing form to Zustand checkout store (ephemeral)
+    setCheckoutForm(form);
+    router.push("/checkout/payment");
   };
 
-  const handlePaymentSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setStep("done");
-    clearCart();
-  };
-
-  if (items.length === 0 && step !== "done") {
+  if (items.length === 0) {
     return (
-      <div className="max-w-lg mx-auto px-6 py-20 text-center">
-        <p className="text-primary/50 text-sm uppercase tracking-widest mb-6">
+      <div className="min-h-[60vh] flex flex-col items-center justify-center px-6">
+        <p className="text-primary/50 text-sm uppercase tracking-widest mb-4">
           Your cart is empty
         </p>
         <Link
           href="/shop"
-          className="inline-flex items-center gap-2 bg-primary text-background px-8 py-3 text-sm tracking-widest uppercase rounded-lg"
+          className="text-[11px] underline font-bold text-primary tracking-[0.2em] uppercase"
         >
           Go Shopping
         </Link>
@@ -57,258 +106,168 @@ export default function CheckoutPage() {
     );
   }
 
-  if (step === "done") {
-    return (
-      <div className="max-w-lg mx-auto px-6 py-20 text-center">
-        <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-green-100 flex items-center justify-center">
-          <CheckCircle size={32} className="text-green-600" />
-        </div>
-        <h1 className="text-2xl font-serif text-primary uppercase tracking-widest mb-4">
-          Order Placed!
-        </h1>
-        <p className="text-primary/60 text-sm mb-8 max-w-xs mx-auto">
-          We&apos;ll verify your payment and ship within 3-5 business days. Thank you
-          for supporting handmade craft.
-        </p>
+  return (
+    <div ref={containerRef} className="min-h-[100svh] bg-background text-primary pb-32">
+      {/* Top Navigation */}
+      <div className="checkout-anim max-w-4xl mx-auto px-4 sm:px-8 py-6">
         <Link
-          href="/"
-          className="inline-flex items-center gap-2 bg-primary text-background px-8 py-3 text-sm tracking-widest uppercase rounded-lg"
+          href="/cart"
+          className="inline-flex items-center gap-2 text-[10px] font-bold tracking-[0.2em] uppercase text-primary/50 hover:text-primary transition-colors"
         >
-          Back to Home
+          <ArrowLeft size={14} /> Back to Cart
         </Link>
       </div>
-    );
-  }
 
-  return (
-    <div className="max-w-lg mx-auto px-4 sm:px-6 py-10 sm:py-16">
-      <Link
-        href="/cart"
-        className="inline-flex items-center gap-2 text-xs tracking-widest uppercase text-primary/50 hover:text-primary transition-colors mb-8"
-      >
-        <ArrowLeft size={14} /> Back to Cart
-      </Link>
-
-      <h1 className="text-3xl font-serif text-primary uppercase tracking-widest mb-2">
-        Checkout
-      </h1>
-
-      {/* Step indicator */}
-      <div className="flex items-center gap-2 mb-10">
-        <span
-          className={`text-[10px] tracking-widest uppercase ${
-            step === "shipping" ? "text-primary font-medium" : "text-primary/40"
-          }`}
-        >
-          1. Shipping
-        </span>
-        <span className="text-primary/20">→</span>
-        <span
-          className={`text-[10px] tracking-widest uppercase ${
-            step === "payment" ? "text-primary font-medium" : "text-primary/40"
-          }`}
-        >
-          2. Payment
-        </span>
+      {/* Progress indicator */}
+      <div className="checkout-anim max-w-4xl mx-auto px-4 sm:px-8 mb-8">
+        <div className="flex items-center gap-3 text-[10px] uppercase tracking-widest">
+          <span className="font-bold text-primary border-b-2 border-primary pb-0.5">1. Billing</span>
+          <div className="flex-1 h-px bg-primary/10" />
+          <span className="text-primary/30">2. Payment</span>
+          <div className="flex-1 h-px bg-primary/10" />
+          <span className="text-primary/30">3. Confirm</span>
+        </div>
       </div>
 
-      {/* ── Step 1: Shipping ── */}
-      {step === "shipping" && (
-        <form onSubmit={handleShippingSubmit} className="space-y-5">
-          <Input
-            label="Full Name"
-            value={form.name}
-            onChange={(v) => setForm({ ...form, name: v })}
-            required
-          />
-          <Input
-            label="Phone Number"
-            type="tel"
-            value={form.phone}
-            onChange={(v) => setForm({ ...form, phone: v })}
-            required
-          />
-          <Input
-            label="House Name / Flat No."
-            value={form.house_name}
-            onChange={(v) => setForm({ ...form, house_name: v })}
-          />
-          <Input
-            label="Area / Street"
-            value={form.area}
-            onChange={(v) => setForm({ ...form, area: v })}
-          />
-          
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="Town / City"
-              value={form.town}
-              onChange={(v) => setForm({ ...form, town: v })}
-            />
-            <Input
-              label="District"
-              value={form.district}
-              onChange={(v) => setForm({ ...form, district: v })}
-            />
+      <div className="max-w-4xl mx-auto px-4 sm:px-8">
+        <form onSubmit={handleContinue} className="grid lg:grid-cols-[1.5fr_1fr] gap-10 lg:gap-16">
+
+          {/* SECTION 1: Billing Details */}
+          <div className="flex flex-col space-y-8">
+            <h2 className="checkout-anim text-lg md:text-xl font-bold font-serif uppercase tracking-widest border-b border-primary/10 pb-4">
+              Billing Details
+            </h2>
+
+            <div className="checkout-anim space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <InputField label="First Name" value={form.firstName} onChange={(v) => setForm({ ...form, firstName: v })} required />
+                <InputField label="Last Name" value={form.lastName} onChange={(v) => setForm({ ...form, lastName: v })} required />
+              </div>
+
+              <InputField label="Address Line 1" value={form.addressLine1} onChange={(v) => setForm({ ...form, addressLine1: v })} required />
+              <InputField label="Address Line 2" value={form.addressLine2} onChange={(v) => setForm({ ...form, addressLine2: v })} />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <InputField label="Place / City" value={form.city} onChange={(v) => setForm({ ...form, city: v })} required />
+                <div className="flex flex-col">
+                  <label className="text-[10px] font-bold text-primary/60 mb-1.5 uppercase tracking-widest">
+                    District <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={form.district}
+                    onChange={(e) => setForm({ ...form, district: e.target.value })}
+                    required
+                    className="border border-primary/20 bg-transparent p-3 text-sm rounded-none focus:border-primary outline-none appearance-none"
+                    style={{ backgroundImage: `url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%231a2f67%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 1rem top 50%", backgroundSize: "0.65rem auto" }}
+                  >
+                    <option value="" disabled>Select District</option>
+                    {KERALA_DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex flex-col">
+                <label className="text-xs text-primary/70 mb-1 uppercase tracking-widest">State / Province</label>
+                <select
+                  value={form.state}
+                  onChange={(e) => setForm({ ...form, state: e.target.value })}
+                  className="border border-primary/20 bg-transparent p-3 text-sm rounded-none focus:border-primary outline-none appearance-none"
+                  style={{ backgroundImage: `url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%231a2f67%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 1rem top 50%", backgroundSize: "0.65rem auto" }}
+                >
+                  <option value="India - Kerala">India - Kerala</option>
+                  <option value="India - Karnataka">India - Karnataka</option>
+                  <option value="India - Tamil Nadu">India - Tamil Nadu</option>
+                  <option value="India - Maharashtra">India - Maharashtra</option>
+                  <option value="India - Delhi">India - Delhi</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <InputField label="Pincode" value={form.pincode} onChange={(v) => setForm({ ...form, pincode: v })} required />
+                <InputField label="Mobile" value={form.mobile} onChange={(v) => setForm({ ...form, mobile: v })} required type="tel" />
+              </div>
+
+              <InputField label="Alternate Mobile (Optional)" value={form.altMobile} onChange={(v) => setForm({ ...form, altMobile: v })} type="tel" />
+
+              <div className="flex flex-col">
+                <label className="text-[10px] font-bold text-primary/70 mb-1 uppercase tracking-widest">Order Notes (Optional)</label>
+                <textarea
+                  value={form.notes}
+                  onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                  className="border border-primary/20 bg-transparent p-3 text-sm rounded-none focus:border-primary outline-none min-h-[100px] resize-y"
+                  placeholder="Notes about your order, e.g. special delivery instructions."
+                />
+              </div>
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="State"
-              value={form.state}
-              onChange={(v) => setForm({ ...form, state: v })}
-            />
-            <Input
-              label="Pincode"
-              value={form.pincode}
-              onChange={(v) => setForm({ ...form, pincode: v })}
-              required
-            />
-          </div>
+          {/* SECTION 2: Order Summary + CTA */}
+          <div className="flex flex-col space-y-8">
+            <h2 className="checkout-anim text-lg md:text-xl font-bold font-serif uppercase tracking-widest border-b border-primary/10 pb-4">
+              Order Items ({items.length})
+            </h2>
 
-          {/* Order summary */}
-          <div className="bg-primary/[0.03] border border-primary/8 rounded-xl p-5 mt-6">
-            <p className="text-xs tracking-widest uppercase text-primary/40 mb-3">
-              Order Summary
-            </p>
-            {items.map((i) => (
-              <div
-                key={i.id}
-                className="flex justify-between text-sm text-primary/70 py-1"
-              >
-                <span className="truncate pr-4">
-                  {i.name} × {i.quantity}
+            <div className="checkout-anim space-y-4">
+              {items.map((i) => (
+                <div key={i.id} className="flex gap-4 items-center">
+                  <div className="relative w-16 h-20 bg-primary/5 rounded-[2px] overflow-hidden flex-shrink-0">
+                    <Image src={i.image_url} alt={i.name} fill className="object-cover" sizes="64px" />
+                  </div>
+                  <div className="flex-1 flex flex-col">
+                    <h3 className="text-[13px] font-bold tracking-widest uppercase mb-1">{i.name}</h3>
+                    <p className="text-[11px] font-sans text-primary/60">QTY: {i.quantity}</p>
+                  </div>
+                  <div className="text-sm font-sans font-semibold">
+                    ₹{(i.price * i.quantity).toLocaleString()}.00
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Totals */}
+            <div className="checkout-anim bg-primary/[0.03] p-5 border border-primary/10 rounded-[2px] flex flex-col space-y-3">
+              <div className="flex justify-between text-xs tracking-widest uppercase text-primary/60">
+                <span>Subtotal</span>
+                <span className="font-sans font-semibold">₹{subtotal.toLocaleString()}.00</span>
+              </div>
+              <div className="flex justify-between text-xs tracking-widest uppercase text-primary/60 pb-3 border-b border-primary/10">
+                <span>Shipping</span>
+                <span className="font-sans font-semibold">
+                  {shipping === 0 ? "FREE" : `₹${shipping.toLocaleString()}.00`}
                 </span>
-                <span>₹{(i.price * i.quantity).toLocaleString()}</span>
               </div>
-            ))}
-            <div className="flex justify-between text-sm font-medium text-primary pt-3 mt-3 border-t border-primary/10">
-              <span>Total</span>
-              <span>₹{finalTotal.toLocaleString()}</span>
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            className="w-full bg-primary text-background py-4 text-sm tracking-[0.2em] uppercase font-medium hover:bg-primary/90 transition-colors rounded-lg mt-4"
-          >
-            Continue to Payment
-          </button>
-        </form>
-      )}
-
-      {/* ── Step 2: UPI Payment ── */}
-      {step === "payment" && (
-        <form onSubmit={handlePaymentSubmit} className="space-y-6">
-          <div className="bg-primary/[0.03] border border-primary/8 rounded-xl p-6 text-center">
-            
-            {/* PhonePe QR Code Image */}
-            <div className="flex justify-center mb-8">
-              <div className="p-3 bg-white rounded-2xl shadow-md border-2 border-primary/20">
-                <img 
-                  src="/phonepe-qr.png" 
-                  alt="PhonePe Scan to Pay QR Code" 
-                  className="w-64 h-64 sm:w-72 sm:h-72 object-contain" 
-                />
+              <div className="flex justify-between text-lg md:text-xl font-bold tracking-wider pt-2">
+                <span className="uppercase">Total</span>
+                <span className="font-sans">₹{finalTotal.toLocaleString()}.00</span>
               </div>
             </div>
 
-            <p className="text-xs tracking-widest uppercase text-primary/40 mb-1">
-              Amount to Pay
-            </p>
-            <p className="text-3xl font-medium text-primary mb-6">
-              ₹{finalTotal.toLocaleString()}
-            </p>
-
-            {/* UPI Deep Link Button */}
-            <a
-              href={upiLink}
-              className="inline-flex items-center justify-center gap-3 bg-primary text-background w-full py-4 text-sm tracking-[0.15em] uppercase font-medium rounded-lg hover:bg-primary/90 transition-colors mb-4"
-            >
-              <Smartphone size={18} /> Pay via GPay / UPI App
-            </a>
-            <p className="text-[10px] text-primary/40 tracking-widest uppercase">
-              Opens your UPI app automatically on mobile devices
-            </p>
-          </div>
-
-          <div className="space-y-4 pt-2">
-            <p className="text-sm font-medium text-primary">
-              After payment, complete below:
-            </p>
-
-            {/* Upload Screenshot */}
-            <div>
-              <label className="block text-xs uppercase tracking-widest text-primary/50 mb-2">
-                Upload Payment Screenshot
-              </label>
-              <label className="flex items-center justify-center border-2 border-dashed border-primary/20 rounded-xl p-6 cursor-pointer hover:border-primary/40 transition-colors bg-white/50">
-                <input
-                  type="file"
-                  className="hidden"
-                  accept="image/*"
-                  onChange={(e) =>
-                    e.target.files && setFile(e.target.files[0])
-                  }
-                />
-                {file ? (
-                  <div className="flex flex-col items-center gap-2">
-                    <CheckCircle className="text-green-600" size={22} />
-                    <span className="text-xs font-medium text-primary truncate max-w-[200px]">
-                      {file.name}
-                    </span>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center gap-2 text-primary/50">
-                    <UploadCloud size={22} />
-                    <span className="text-xs">Tap to upload</span>
-                  </div>
-                )}
-              </label>
-            </div>
-
-            {/* UTR Number */}
-            <div>
-              <label className="block text-xs uppercase tracking-widest text-primary/50 mb-2">
-                12-Digit UTR Number
-              </label>
-              <input
-                type="text"
-                maxLength={12}
-                value={utr}
-                onChange={(e) => setUtr(e.target.value.replace(/\D/g, ""))}
-                className="w-full p-4 bg-background border border-primary/15 rounded-xl outline-none focus:border-primary text-primary font-mono text-center tracking-[0.25em] transition-colors placeholder:text-primary/25"
-                placeholder="123456789012"
-                required
-              />
+            {/* CTA */}
+            <div className="checkout-anim w-full">
+              <button
+                type="submit"
+                className="w-full bg-primary text-background py-4 flex items-center justify-center gap-3 transition-all duration-300 hover:bg-primary/90 active:scale-[0.98] shadow-lg shadow-primary/20 rounded-sm"
+              >
+                <span className="text-[13px] md:text-sm font-bold tracking-widest uppercase">
+                  Continue to Payment
+                </span>
+                <ArrowRight size={16} />
+              </button>
+              <p className="text-[10px] text-primary/30 text-center mt-3 uppercase tracking-widest">
+                Secured by PhonePe · SSL Encrypted
+              </p>
             </div>
           </div>
 
-          {/* Store Policy Notice */}
-          <div className="flex items-start gap-3 p-4 mt-8 rounded-lg bg-primary/5 mb-6">
-            <div className="mt-0.5 text-primary">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-            </div>
-            <p className="text-xs text-primary/80 leading-relaxed font-medium">
-              Strictly No Cancellation & No Return. All sales are final.
-            </p>
-          </div>
-
-          <button
-            type="submit"
-            disabled={utr.length < 12}
-            className="w-full bg-primary text-background py-4 text-sm tracking-[0.2em] uppercase font-medium hover:bg-primary/90 transition-colors rounded-lg disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            Place Order
-          </button>
         </form>
-      )}
+      </div>
     </div>
   );
 }
 
 /* ── Reusable Input ── */
-function Input({
+function InputField({
   label,
   value,
   onChange,
@@ -322,16 +281,16 @@ function Input({
   required?: boolean;
 }) {
   return (
-    <div>
-      <label className="block text-xs uppercase tracking-widest text-primary/50 mb-2">
-        {label}
+    <div className="flex flex-col">
+      <label className="text-[10px] font-bold text-primary/60 mb-1.5 uppercase tracking-widest">
+        {label} {required && <span className="text-red-500">*</span>}
       </label>
       <input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         required={required}
-        className="w-full p-3.5 bg-background border border-primary/15 rounded-xl outline-none focus:border-primary text-primary text-sm transition-colors placeholder:text-primary/25"
+        className="border border-primary/20 bg-transparent p-3 text-sm rounded-none focus:border-primary focus:ring-1 focus:ring-primary/10 outline-none transition-all placeholder:text-primary/20"
       />
     </div>
   );

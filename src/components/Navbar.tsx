@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import {
   Menu,
@@ -12,10 +12,13 @@ import {
 } from "lucide-react";
 // selectItemCount ഒഴിവാക്കി
 import { useCartStore, useAuthStore } from "@/store/cartStore";
+import gsap from "gsap";
 
 const NAV_LINKS = [
   { label: "Home", href: "/" },
   { label: "Shop", href: "/shop" },
+  { label: "Journals", href: "/journals" },
+  { label: "Studio", href: "/studio" },
   { label: "About", href: "/about" },
 ];
 
@@ -23,10 +26,12 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
+  const mobileNavRef = useRef<HTMLDivElement>(null);
   
   // ഇതാണ് ശരിയായ രീതി
   const itemCount = useCartStore((s) => s.items.reduce((total, item) => total + item.quantity, 0));
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
+  const userRole = useAuthStore((s) => s.user?.role);
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 20);
@@ -38,6 +43,28 @@ export default function Navbar() {
     document.body.style.overflow = open ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
   }, [open]);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      if (!mobileNavRef.current) return;
+      const links = mobileNavRef.current.querySelectorAll(".mobile-nav-link");
+      if (open) {
+        gsap.fromTo(
+          links,
+          { opacity: 0, y: 30 },
+          { opacity: 1, y: 0, duration: 0.6, ease: "power3.out", stagger: 0.15 }
+        );
+      } else {
+        gsap.set(links, { opacity: 0, y: 30 });
+      }
+    });
+    return () => ctx.revert();
+  }, [open]);
+
+  // Hide entirely on admin routes OR if user is an admin (AuthGuard will redirect them)
+  if (pathname?.startsWith("/admin") || userRole === "admin") {
+    return null;
+  }
 
   return (
     <>
@@ -53,13 +80,13 @@ export default function Navbar() {
             <div className="flex items-center gap-8">
               <button
                 onClick={() => setOpen(true)}
-                className="lg:hidden p-4 -ml-4 cursor-pointer text-primary relative z-[999]"
+                className="md:hidden p-4 -ml-4 cursor-pointer text-primary relative z-[999]"
                 aria-label="Open menu"
               >
                 <Menu size={22} strokeWidth={1.5} />
               </button>
 
-              <nav className="hidden lg:flex items-center gap-8">
+              <nav className="hidden md:flex items-center gap-8">
                 {NAV_LINKS.map((l) => (
                   <Link
                     key={l.href}
@@ -78,7 +105,7 @@ export default function Navbar() {
 
             <Link
               href="/"
-              className="lg:absolute lg:left-1/2 lg:-translate-x-1/2 flex-1 text-center lg:flex-none text-xl sm:text-2xl font-serif tracking-[0.25em] text-primary uppercase select-none"
+              className="md:absolute md:left-1/2 md:-translate-x-1/2 flex-1 text-center md:flex-none text-xl sm:text-2xl font-serif tracking-[0.25em] text-primary uppercase select-none"
             >
               Ethoss
             </Link>
@@ -111,7 +138,7 @@ export default function Navbar() {
 
       {/* Sidebar Mobile */}
       <div
-        className={`fixed inset-0 z-[999] transition-opacity duration-300 lg:hidden ${
+        className={`fixed inset-0 z-[999] transition-opacity duration-300 md:hidden ${
           open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
       >
@@ -121,16 +148,16 @@ export default function Navbar() {
             <span className="text-lg font-serif tracking-[0.2em] text-primary uppercase">Ethoss</span>
             <button onClick={() => setOpen(false)}><X size={20} /></button>
           </div>
-          <nav className="p-6 space-y-1">
+          <nav className="p-6 space-y-1" ref={mobileNavRef}>
             {NAV_LINKS.map((l) => (
-              <Link key={l.href} href={l.href} onClick={() => setOpen(false)} className="flex items-center justify-between py-4 border-b border-primary/5 text-sm tracking-widest uppercase">
+              <Link key={l.href} href={l.href} onClick={() => setOpen(false)} className="mobile-nav-link flex items-center justify-between py-4 border-b border-primary/5 text-sm tracking-widest uppercase">
                 {l.label} <ChevronRight size={16} className="text-primary/30" />
               </Link>
             ))}
           </nav>
         </div>
       </div>
-      <div className="h-16 lg:h-20" />
+      <div className="h-16 md:h-20" />
     </>
   );
 }

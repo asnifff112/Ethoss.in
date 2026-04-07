@@ -21,74 +21,50 @@
   ],
   "products": [
     {
-      "id": "eth-o-001",
-      "name": "Classic Onyx Bracelet",
-      "description": "Pure. Polished. Timeless. A minimalist staple designed for those who find beauty in simplicity.",
+      "name": "Onyx Beads Bracelet",
+      "description": "Handcrafted minimalist onyx beads.",
       "price": 1200,
+      "shippingPrice": 50,
       "category_id": "onyx-essence",
-      "stock": 25,
-      "image_url": "/catsection/img2.jpeg"
+      "stock": 1,
+      "image_urls": [
+        "/catsection/img1.jpeg",
+        "/catsection/img2.jpeg",
+        "/catsection/img3.jpeg"
+      ],
+      "isAvailable": true,
+      "showLowStock": false,
+      "id": "p-1"
     },
     {
-      "id": "eth-o-002",
-      "name": "Midnight Glow Band",
-      "description": "Smooth black beads tightly strung together, reflecting light beautifully.",
-      "price": 1500,
-      "category_id": "onyx-essence",
-      "stock": 10,
-      "image_url": "/catsection/img2.jpeg"
-    },
-    {
-      "id": "eth-e-001",
-      "name": "Textured Stone Bracelet",
-      "description": "Raw textures meet refined craftsmanship. Each bead tells a story of the earth’s natural artistry.",
-      "price": 1800,
+      "id": "p-2",
+      "name": "Earthbound Soul Necklace",
+      "description": "Raw textures and refined craftsmanship.",
+      "price": 2500,
+      "shippingPrice": 0,
       "category_id": "earthbound-soul",
-      "stock": 15,
-      "image_url": "/earthbound-soul.png"
-    },
-    {
-      "id": "eth-e-002",
-      "name": "Volcanic Matter Wristband",
-      "description": "Matte, irregular volcanic beads bringing a grounding, earthy feel.",
-      "price": 2200,
-      "category_id": "earthbound-soul",
-      "stock": 5,
-      "image_url": "/earthbound-soul.png"
-    },
-    {
-      "id": "eth-w-001",
-      "name": "Intricate Braided Band",
-      "description": "Strength in every strand. A testament to the patient art of slow-handcrafting.",
-      "price": 950,
-      "category_id": "intricate-weaves",
-      "stock": 30,
-      "image_url": "/intricate-weaves.png"
-    },
-    {
-      "id": "eth-w-002",
-      "name": "Obsidian Twine Custom",
-      "description": "Thickly braided thread creating an unbreakable bond and timeless aesthetic.",
-      "price": 1100,
-      "category_id": "intricate-weaves",
-      "stock": 20,
-      "image_url": "/intricate-weaves.png"
+      "stock": 0,
+      "image_urls": [
+        "/earthbound-soul.png",
+        "/catsection/img2.jpeg",
+        "/catsection/img3.jpeg"
+      ],
+      "isAvailable": false,
+      "showLowStock": true
     }
   ],
   "users": [
     {
-      "id": "u-1774868159928",
-      "name": "asnif",
-      "email": "asnifkl@gmail.com",
-      "password": "123456",
-      "order_history": []
-    },
-    {
-      "id": "u-1774892067753",
-      "name": "ASNIF asi",
-      "email": "asnifkl1@gmail.com",
-      "password": "123456",
+      "id": "u-admin",
+      "name": "Ethoss Admin",
+      "email": "ethoss.in@gmail.com",
+      "password": "asnifnafila",
+      "role": "admin",
+      "isBlocked": false,
       "order_history": []
     }
+  ],
+  "orders": [
+    {}
   ]
 }

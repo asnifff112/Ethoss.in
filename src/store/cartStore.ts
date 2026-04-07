@@ -7,6 +7,7 @@ export interface Product {
   name: string;
   description: string;
   price: number;
+  shippingPrice: number;
   category_id: string;
   stock: number;
   image_url: string;
@@ -16,12 +17,13 @@ export interface CartItem extends Product {
   quantity: number;
 }
 
-interface CartState {
+export interface CartState {
   items: CartItem[];
   addItem: (product: Product) => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
+  setCart: (items: CartItem[]) => void;
 }
 
 export const useCartStore = create<CartState>()(
@@ -50,11 +52,11 @@ export const useCartStore = create<CartState>()(
               : state.items.map((i) => (i.id === id ? { ...i, quantity: qty } : i)),
         })),
       clearCart: () => set({ items: [] }),
+      setCart: (items) => set({ items }),
     }),
     { name: "ethoss-cart-storage" }
   )
 );
-
 /* ── Auth & Profile Types ── */
 export interface Order {
   order_id: string;
@@ -79,6 +81,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  role: "admin" | "user";
   phone?: string;
   addresses?: Address[];
   order_history?: Order[];
@@ -87,6 +90,8 @@ export interface User {
 interface AuthState {
   user: User | null;
   isLoggedIn: boolean;
+  _hasHydrated: boolean;
+  setHasHydrated: (val: boolean) => void;
   login: (userData: User) => void;
   logout: () => void;
   updateProfile: (data: Partial<User>) => void;
@@ -97,13 +102,29 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       user: null,
       isLoggedIn: false,
+      _hasHydrated: false,
+      setHasHydrated: (val) => set({ _hasHydrated: val }),
       login: (userData) => set({ user: userData, isLoggedIn: true }),
-      logout: () => set({ user: null, isLoggedIn: false }),
+      logout: () => {
+        useCartStore.getState().clearCart();
+        set({ user: null, isLoggedIn: false });
+      },
       updateProfile: (data) =>
         set((state) => ({
           user: state.user ? { ...state.user, ...data } : null,
         })),
     }),
-    { name: "ethoss-auth-storage" }
+    {
+      name: "ethoss-auth-storage",
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
+    }
   )
 );
+
+// Helper for admin protection logic
+export const checkAdmin = () => {
+  const user = useAuthStore.getState().user;
+  return user?.role === "admin";
+};
