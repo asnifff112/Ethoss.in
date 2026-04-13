@@ -4,15 +4,19 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore, Address } from "@/store/cartStore";
 import { toast } from "sonner";
-import { LogOut, Package, MapPin, Save, Camera, User, Mail, Loader2, ShoppingBag } from "lucide-react";
+import { LogOut, Package, MapPin, Save, Camera, User, Mail, Loader2, ShoppingBag, ArrowRight } from "lucide-react";
+import Link from "next/link";
 import axios from "axios";
 import Image from "next/image";
 
 const KERALA_DISTRICTS = [
-  "Alappuzha", "Ernakulam", "Idukki", "Kannur", "Kasaragod", "Kollam",
-  "Kottayam", "Kottayam", "Kozhikode", "Malappuram", "Palakkad", "Pathanamthitta",
-  "Thiruvananthapuram", "Thrissur", "Wayanad", "Outside Kerala"
+  "Alappuzha", "Ernakulam", "Idukki", "Kannur", "Kasaragod",
+  "Kollam", "Kottayam", "Kozhikode", "Malappuram", "Palakkad",
+  "Pathanamthitta", "Thiruvananthapuram", "Thrissur", "Wayanad",
+  "Outside Kerala"
 ];
+
+const ORDER_STEPS = ["Pending", "Processing", "Shipped", "Delivered"];
 
 interface OrderItem {
   id: string;
@@ -54,6 +58,7 @@ export default function ProfilePage() {
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const initialAddress: Address = user?.addresses?.[0] || {};
 
@@ -128,8 +133,10 @@ export default function ProfilePage() {
 
   if (!isLoggedIn || !user) return null;
 
+  const isPhoneValid = profileData.phone.length === 0 || profileData.phone.length === 10;
+
   const handleUpdateProfile = async () => {
-    if (!profileData.phone || profileData.phone.length < 10) {
+    if (!profileData.phone || profileData.phone.length !== 10) {
       toast.error("Please enter a valid 10-digit phone number");
       return;
     }
@@ -147,8 +154,9 @@ export default function ProfilePage() {
       },
     ];
 
+    setIsSaving(true);
     try {
-      const res = await axios.put("/api/auth/profile", {
+      await axios.put("/api/auth/profile", {
         userId: user.id,
         name: profileData.fullName,
         phone: profileData.phone,
@@ -168,6 +176,8 @@ export default function ProfilePage() {
       toast.error("Error", {
         description: "Failed to save profile details to the server.",
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -227,26 +237,40 @@ export default function ProfilePage() {
                   className="w-full bg-transparent py-2 text-sm text-primary outline-none"
                 />
               </div>
-              <div className="space-y-1 border-b border-primary/10">
+              <div className={`space-y-1 border-b ${!isPhoneValid ? "border-red-400" : "border-primary/10"}`}>
                 <label className="text-[9px] uppercase text-primary/40 tracking-widest">Contact Phone</label>
                 <div className="flex justify-between items-center">
                   <input
                     type="tel"
+                    maxLength={10}
                     value={profileData.phone}
-                    onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
-                    className="w-full bg-transparent py-2 text-sm text-primary outline-none"
+                    onChange={(e) => setProfileData({ ...profileData, phone: e.target.value.replace(/\D/g, "") })}
+                    className={`w-full bg-transparent py-2 text-sm outline-none ${!isPhoneValid ? "text-red-500" : "text-primary"}`}
                   />
                   <button className="text-[8px] uppercase tracking-tighter text-primary/40 hover:text-primary">Verify</button>
                 </div>
+                {!isPhoneValid && <p className="text-[9px] text-red-400 pb-1">Must be exactly 10 digits</p>}
               </div>
             </div>
           </section>
 
           {/* Section: Address */}
           <section>
-            <h2 className="text-[11px] font-bold text-primary uppercase tracking-[0.2em] mb-8 flex items-center gap-3">
+            <h2 className="text-[11px] font-bold text-primary uppercase tracking-[0.2em] mb-4 flex items-center gap-3">
               <MapPin size={15} className="opacity-40" /> Postal Address (India Post Ready)
             </h2>
+
+            {/* Address Summary Card */}
+            <div className="mb-6 px-4 py-3 rounded-xl border border-primary/10 bg-primary/[0.02] flex items-start gap-2">
+              <MapPin size={12} className="text-primary/30 mt-0.5 flex-shrink-0" />
+              {profileData.houseNo || profileData.area || profileData.district ? (
+                <p className="text-[11px] text-primary/60 leading-relaxed">
+                  {[profileData.houseNo, profileData.buildingName, profileData.area, profileData.postOffice, profileData.district, profileData.pincode].filter(Boolean).join(", ")}
+                </p>
+              ) : (
+                <p className="text-[11px] text-primary/30 uppercase tracking-widest">No address saved yet</p>
+              )}
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
               <input placeholder="House / Flat No." value={profileData.houseNo} onChange={(e) => setProfileData({ ...profileData, houseNo: e.target.value })} className="bg-primary/[0.02] border border-primary/5 p-4 text-sm outline-none focus:border-primary/20" />
               <input placeholder="Building / Apartment Name" value={profileData.buildingName} onChange={(e) => setProfileData({ ...profileData, buildingName: e.target.value })} className="bg-primary/[0.02] border border-primary/5 p-4 text-sm outline-none focus:border-primary/20" />
@@ -260,7 +284,7 @@ export default function ProfilePage() {
                 className="bg-primary/[0.02] border border-primary/5 p-4 text-sm outline-none focus:border-primary/20 appearance-none"
               >
                 <option value="" disabled>Select District</option>
-                {KERALA_DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
+                {KERALA_DISTRICTS.map((d, i) => <option key={i} value={d}>{d}</option>)}
               </select>
               <select
                 value={profileData.state}
@@ -274,10 +298,11 @@ export default function ProfilePage() {
 
             <button
               onClick={handleUpdateProfile}
-              className="mt-12 w-full md:w-auto px-10 py-4 bg-primary text-white text-[10px] uppercase tracking-[0.3em] flex items-center justify-center gap-3 hover:bg-primary/90 active:scale-95 transition-all shadow-md font-bold"
+              disabled={isSaving}
+              className="mt-12 w-full md:w-auto px-10 py-4 bg-primary text-white text-[10px] uppercase tracking-[0.3em] flex items-center justify-center gap-3 hover:bg-primary/90 active:scale-95 transition-all shadow-md font-bold disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              <Save size={16} />
-              <span>Save Changes</span>
+              {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+              <span>{isSaving ? "Saving..." : "Save Changes"}</span>
             </button>
           </section>
         </div>
@@ -306,6 +331,7 @@ export default function ProfilePage() {
                 {orders.map((order) => {
                   const firstItem = order.items?.[0];
                   const statusClass = STATUS_STYLES[order.status] || "bg-primary/5 text-primary/50 border-primary/10";
+                  const stepIndex = ORDER_STEPS.indexOf(order.status);
 
                   return (
                     <div
@@ -347,6 +373,29 @@ export default function ProfilePage() {
                         </span>
                       </div>
 
+                      {/* Order Progress Steps */}
+                      {order.status !== "Cancelled" && (
+                        <div className="flex items-center gap-1 mb-3 px-1">
+                          {ORDER_STEPS.map((step, i) => (
+                            <div key={step} className="flex items-center flex-1">
+                              <div className="flex flex-col items-center gap-1 flex-1">
+                                <div className={`w-2 h-2 rounded-full transition-colors ${
+                                  i <= stepIndex ? "bg-primary" : "bg-primary/15"
+                                }`} />
+                                <span className={`text-[7px] uppercase tracking-tight text-center leading-tight ${
+                                  i <= stepIndex ? "text-primary/60" : "text-primary/20"
+                                }`}>{step}</span>
+                              </div>
+                              {i < ORDER_STEPS.length - 1 && (
+                                <div className={`h-[1px] flex-1 mb-3 ${
+                                  i < stepIndex ? "bg-primary/40" : "bg-primary/10"
+                                }`} />
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
                       {/* Bottom row */}
                       <div className="flex items-center justify-between pt-2 border-t border-primary/5">
                         <div>
@@ -375,6 +424,14 @@ export default function ProfilePage() {
                 })}
               </div>
             )}
+
+            {/* Continue Shopping */}
+            <Link
+              href="/shop"
+              className="mt-6 flex items-center justify-center gap-2 w-full py-3 border border-primary text-primary text-[10px] uppercase tracking-widest font-bold hover:bg-primary/5 transition-colors rounded-lg"
+            >
+              Continue Shopping <ArrowRight size={13} />
+            </Link>
           </div>
         </div>
 

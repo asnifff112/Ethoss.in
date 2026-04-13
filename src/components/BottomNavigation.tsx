@@ -2,16 +2,19 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Shirt, ShoppingCart, Truck } from "lucide-react";
+import { Home, Shirt, ShoppingCart, User } from "lucide-react";
 
 export function BottomNavigation() {
   const pathname = usePathname();
 
+  const isAdmin = pathname.startsWith("/admin");
+  if (isAdmin) return null;
+
   const navItems = [
     { label: "Home", href: "/", icon: Home },
-    { label: "Products", href: "/shop", icon: Shirt },
+    { label: "Shop", href: "/shop", icon: Shirt },
     { label: "Cart", href: "/cart", icon: ShoppingCart },
-    { label: "Track", href: "/track", icon: Truck },
+    { label: "Profile", href: "/profile", icon: User },
   ];
 
   return (

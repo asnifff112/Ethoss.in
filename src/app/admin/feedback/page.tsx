@@ -31,7 +31,7 @@ export default function AdminFeedbackPage() {
 
   const fetchFeedback = async () => {
     try {
-      const res = await fetch("http://localhost:5000/feedbacks");
+      const res = await fetch("/api/admin/feedback");
       const data = await res.json();
       if (res.ok) setFeedbacks(data);
     } catch (err) {
@@ -44,12 +44,11 @@ export default function AdminFeedbackPage() {
   const handleAddManual = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch("http://localhost:5000/feedbacks", {
+      const res = await fetch("/api/admin/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
-          id: `f-${Date.now()}`,
           status: 'approved',
           createdAt: new Date().toISOString()
         })
@@ -69,8 +68,10 @@ export default function AdminFeedbackPage() {
   const deleteFeedback = async (id: string) => {
     if (!confirm("Remove this feedback?")) return;
     try {
-      const res = await fetch(`http://localhost:5000/feedbacks/${id}`, {
-        method: "DELETE"
+      const res = await fetch("/api/admin/feedback", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id })
       });
       if (res.ok) {
         setFeedbacks(feedbacks.filter(f => f.id !== id));

@@ -35,3 +35,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: 'Error adding feedback' }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const { id } = await request.json();
+    const fileContent = await fs.readFile(DB_PATH, 'utf8');
+    const db = JSON.parse(fileContent);
+    db.feedbacks = (db.feedbacks || []).filter((f: any) => f.id !== id);
+    await fs.writeFile(DB_PATH, JSON.stringify(db, null, 2));
+    return NextResponse.json({ message: 'Feedback deleted' }, { status: 200 });
+  } catch (error) {
+    return NextResponse.json({ message: 'Error deleting feedback' }, { status: 500 });
+  }
+}

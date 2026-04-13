@@ -13,10 +13,21 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  // Reset error whenever any field changes
+  const handleChange = (setter: (v: string) => void) =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setter(e.target.value);
+      if (error) setError("");
+    };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+
     if (password !== confirmPassword) {
+      setError("Passwords do not match");
       toast.error("Passwords do not match");
       return;
     }
@@ -32,13 +43,20 @@ export default function RegisterPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        toast.error(data.message || "Registration failed");
+        const msg = data.message || "Registration failed. Please try again.";
+        setError(msg);
+        toast.error(msg);
       } else {
         toast.success("Account created successfully. Please sign in.");
         router.push("/login");
       }
-    } catch (error) {
-      toast.error("An error occurred. Please try again.");
+    } catch (err) {
+      const msg =
+        err instanceof TypeError
+          ? "Unable to connect to the server. Please try again."
+          : "An unexpected error occurred. Please try again.";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -62,7 +80,7 @@ export default function RegisterPage() {
             <input
               type="text"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={handleChange(setName)}
               required
               className="w-full p-3.5 bg-background border border-primary/15 rounded-xl outline-none focus:border-primary text-primary text-sm transition-colors"
             />
@@ -75,7 +93,7 @@ export default function RegisterPage() {
             <input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={handleChange(setEmail)}
               required
               className="w-full p-3.5 bg-background border border-primary/15 rounded-xl outline-none focus:border-primary text-primary text-sm transition-colors"
               placeholder="you@example.com"
@@ -89,7 +107,7 @@ export default function RegisterPage() {
             <input
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={handleChange(setPassword)}
               required
               minLength={6}
               className="w-full p-3.5 bg-background border border-primary/15 rounded-xl outline-none focus:border-primary text-primary text-sm transition-colors"
@@ -104,13 +122,19 @@ export default function RegisterPage() {
             <input
               type="password"
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              onChange={handleChange(setConfirmPassword)}
               required
               minLength={6}
               className="w-full p-3.5 bg-background border border-primary/15 rounded-xl outline-none focus:border-primary text-primary text-sm transition-colors"
               placeholder="••••••••"
             />
           </div>
+
+          {error && (
+            <p className="text-red-500 text-xs text-center tracking-wide py-2 px-3 bg-red-50/50 rounded-lg border border-red-100">
+              {error}
+            </p>
+          )}
 
           <button
             type="submit"

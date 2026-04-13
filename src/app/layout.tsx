@@ -1,14 +1,20 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AuthGuard from "@/components/AuthGuard";
+import { BottomNavigation } from "@/components/BottomNavigation";
 import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
   title: "ETHOSS.IN | Handcrafted Minimalist Jewellery",
   description: "100% Handcrafted jewellery from Kerala. Minimalist. Sustainable. Built to last.",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1", 
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 export default function RootLayout({
@@ -29,8 +35,11 @@ export default function RootLayout({
           </main>
         </AuthGuard>
 
-        {/* Footer */}
+        {/* Footer — hidden on admin routes */}
         <Footer />
+
+        {/* Bottom Navigation — mobile only, non-admin routes */}
+        <BottomNavigation />
 
         {/* Mobile-friendly Toaster */}
         <Toaster 

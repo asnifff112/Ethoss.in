@@ -17,6 +17,12 @@
       "title": "Intricate Weaves",
       "description": "Strength in every strand. A testament to the patient art of slow-handcrafting.",
       "image_url": "/intricate-weaves.png"
+    },
+    {
+      "id": "celestial-duo",
+      "title": "Celestial Duo",
+      "description": "Two pieces. One soul. Handcrafted combo sets designed to be worn together — or gifted as a pair.",
+      "image_url": "/catsection/img3.jpeg"
     }
   ],
   "products": [
@@ -24,16 +30,17 @@
       "name": "Onyx Beads Bracelet",
       "description": "Handcrafted minimalist onyx beads.",
       "price": 1200,
+      "original_price": 1500,
       "shippingPrice": 50,
       "category_id": "onyx-essence",
-      "stock": 1,
+      "stock": 0,
       "image_urls": [
         "/catsection/img1.jpeg",
         "/catsection/img2.jpeg",
         "/catsection/img3.jpeg"
       ],
       "isAvailable": false,
-      "showLowStock": true,
+      "showLowStock": false,
       "id": "p-1"
     },
     {
@@ -41,15 +48,16 @@
       "name": "Earthbound Soul Necklace",
       "description": "Raw textures and refined craftsmanship.",
       "price": 2500,
+      "original_price": 2800,
       "shippingPrice": 0,
       "category_id": "earthbound-soul",
-      "stock": 0,
+      "stock": 1,
       "image_urls": [
         "/earthbound-soul.png",
         "/catsection/img2.jpeg",
         "/catsection/img3.jpeg"
       ],
-      "isAvailable": false,
+      "isAvailable": true,
       "showLowStock": true
     }
   ],
@@ -62,9 +70,42 @@
       "role": "admin",
       "isBlocked": false,
       "order_history": []
+    },
+    {
+      "id": "u-1775844444937",
+      "name": "asnif",
+      "email": "ponnus@gmail.com",
+      "password": "123456",
+      "order_history": []
     }
   ],
   "orders": [
-    {}
+    {},
+    {
+      "id": "ord-1775846379211",
+      "userId": "u-1775844444937",
+      "customerName": "asnif aziii",
+      "customerEmail": "ponnus@gmail.com",
+      "phone": "09746156270",
+      "address": "Chettippadi, Juhi, Anappadi, Malappuram, India - Kerala, 676319",
+      "productName": "Onyx Beads Bracelet",
+      "quantity": 1,
+      "totalPrice": 1300,
+      "status": "Processing",
+      "paymentStatus": "Paid",
+      "paymentMethod": "PhonePe",
+      "createdAt": "2026-04-10T18:40:03.698Z",
+      "notes": "",
+      "items": [
+        {
+          "id": "p-1",
+          "name": "Onyx Beads Bracelet",
+          "quantity": 1,
+          "price": 1200,
+          "image_url": "/catsection/img1.jpeg",
+          "shipping": 50
+        }
+      ]
+    }
   ]
 }

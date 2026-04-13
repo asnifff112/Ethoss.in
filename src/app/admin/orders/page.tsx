@@ -32,7 +32,7 @@ export default function AdminOrdersPage() {
 
   const fetchOrders = async () => {
     try {
-      const res = await fetch("http://localhost:5000/orders");
+      const res = await fetch("/api/admin/orders");
       const data = await res.json();
       if (res.ok) setOrders(data);
     } catch (err) {
@@ -44,10 +44,10 @@ export default function AdminOrdersPage() {
 
   const updateStatus = async (id: string, newStatus: string) => {
     try {
-      const res = await fetch(`http://localhost:5000/orders/${id}`, {
-        method: "PATCH",
+      const res = await fetch("/api/admin/orders", {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus })
+        body: JSON.stringify({ id, status: newStatus })
       });
 
       if (res.ok) {

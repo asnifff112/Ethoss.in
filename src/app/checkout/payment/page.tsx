@@ -11,19 +11,54 @@ import {
   Loader2,
   Lock,
   CheckCircle2,
-  Zap,
+  ExternalLink,
+  ChevronRight,
 } from "lucide-react";
 import { useCartStore, useAuthStore } from "@/store/cartStore";
 import { useCheckoutStore } from "@/store/checkoutStore";
 import axios from "axios";
 import { toast } from "sonner";
 
-const PHONEPE_MERCHANT_ID = "M2357RW0W64S2";
-const PHONEPE_CLIENT_VERSION = "1";
+// ─── Real UPI ID ───────────────────────────────────────────────
+const UPI_ID = "9746156270@ybl";
+const UPI_NAME = "ETHOSS";
+
+// ─── UPI App Definitions ───────────────────────────────────────
+const UPI_APPS = [
+  {
+    name: "GPay",
+    color: "#4285F4",
+    bg: "#e8f0fe",
+    label: "G",
+    scheme: (link: string) => link,
+  },
+  {
+    name: "PhonePe",
+    color: "#5f259f",
+    bg: "#f3eeff",
+    label: "Pe",
+    scheme: (link: string) => link.replace("upi://", "phonepe://"),
+  },
+  {
+    name: "Paytm",
+    color: "#00BAF2",
+    bg: "#e0f7fe",
+    label: "Pt",
+    scheme: (link: string) => link.replace("upi://", "paytmmp://"),
+  },
+  {
+    name: "BHIM",
+    color: "#1a2f67",
+    bg: "#eef0f8",
+    label: "B",
+    scheme: (link: string) => link,
+  },
+];
 
 export default function PaymentPage() {
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
+  const orderId = useRef(`ord-${Date.now()}`);
 
   const items = useCartStore((s) => s.items);
   const clearCart = useCartStore((s) => s.clearCart);
@@ -31,14 +66,14 @@ export default function PaymentPage() {
   const form = useCheckoutStore((s) => s.form);
   const clearForm = useCheckoutStore((s) => s.clearForm);
 
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [paymentStep, setPaymentStep] = useState<"idle" | "processing" | "verifying">("idle");
+  const [step, setStep] = useState<"select" | "upi_pending" | "confirming">("select");
+  const [selectedApp, setSelectedApp] = useState<string | null>(null);
 
   const subtotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const shipping = subtotal >= 2000 ? 0 : 100;
   const finalTotal = subtotal + shipping;
 
-  // Guard: redirect if no cart or no billing form was filled
+  // Guard: redirect if no cart or no billing form
   useEffect(() => {
     if (items.length === 0) {
       router.push("/cart");
@@ -63,24 +98,41 @@ export default function PaymentPage() {
     return () => clearTimeout(timeout);
   }, []);
 
-  const handlePayment = async () => {
-    if (!form || !user || isProcessing) return;
+  // ─── Generate UPI Deep Link ────────────────────────────────
+  const generateUpiLink = (oid: string) => {
+    const params = new URLSearchParams({
+      pa: UPI_ID,
+      pn: UPI_NAME,
+      am: finalTotal.toString(),
+      cu: "INR",
+      tn: `ETHOSS Order ${oid}`,
+    });
+    return `upi://pay?${params.toString()}`;
+  };
 
-    setIsProcessing(true);
-    setPaymentStep("processing");
+  // ─── Open UPI App ──────────────────────────────────────────
+  const handleOpenApp = (app: (typeof UPI_APPS)[0]) => {
+    setSelectedApp(app.name);
+    const upiLink = generateUpiLink(orderId.current);
+    const appLink = app.scheme(upiLink);
 
-    const toastId = toast.loading("Initiating secure PhonePe payment...");
+    // Open the UPI deep link — phone handles which app to use
+    window.location.href = appLink;
 
-    // Step 1: Simulate PhonePe gateway processing (2.5s)
-    await new Promise((r) => setTimeout(r, 1500));
-    setPaymentStep("verifying");
-    toast.loading("Verifying payment & securing your order...", { id: toastId });
-    await new Promise((r) => setTimeout(r, 1200));
+    // After 2s the user has (likely) switched to the UPI app — show confirm
+    setTimeout(() => {
+      setStep("upi_pending");
+    }, 2000);
+  };
+
+  // ─── Confirm Payment (after user returns from UPI app) ────
+  const handleConfirmPayment = async () => {
+    if (!form || !user) return;
+    setStep("confirming");
 
     try {
-      const orderId = `ord-${Date.now()}`;
       const orderData = {
-        id: orderId,
+        id: orderId.current,
         userId: user.id,
         customerName: `${form.firstName} ${form.lastName}`.trim(),
         customerEmail: user.email,
@@ -96,14 +148,12 @@ export default function PaymentPage() {
           .filter(Boolean)
           .join(", "),
         productName:
-          items[0].name +
-          (items.length > 1 ? ` (+${items.length - 1} more)` : ""),
+          items[0].name + (items.length > 1 ? ` (+${items.length - 1} more)` : ""),
         quantity: items.reduce((acc, item) => acc + item.quantity, 0),
         totalPrice: finalTotal,
         status: "Processing",
         paymentStatus: "Paid",
-        paymentMethod: "PhonePe",
-        merchantId: PHONEPE_MERCHANT_ID,
+        paymentMethod: selectedApp || "UPI",
         createdAt: new Date().toISOString(),
         notes: form.notes || "",
         items: items.map((i) => ({
@@ -116,16 +166,13 @@ export default function PaymentPage() {
         })),
       };
 
-      // 1. POST the order to db.json
+      // 1. Save order to db.json
       await axios.post("/api/orders", orderData);
 
-      // 2. Exact Stock Deduction — subtract purchased qty for every item
-      //    The API auto-toggles isAvailable & showLowStock based on new stock
+      // 2. Deduct stock for each purchased item
       await Promise.allSettled(
         items.map((item) =>
-          axios.patch(`/api/products/${item.id}`, {
-            decrementBy: item.quantity,
-          })
+          axios.patch(`/api/products/${item.id}`, { decrementBy: item.quantity })
         )
       );
 
@@ -133,20 +180,13 @@ export default function PaymentPage() {
       clearCart();
       clearForm();
 
-      toast.dismiss(toastId);
-      toast.success("Payment Successful! 🎉", {
-        description: "Order ID: " + orderId,
-      });
-
-      // 4. Redirect to success page
+      toast.success("Order Placed Successfully! 🎉");
       router.push(
-        `/checkout/success?orderId=${orderId}&total=${finalTotal}&name=${encodeURIComponent(orderData.customerName)}`
+        `/checkout/success?orderId=${orderId.current}&total=${finalTotal}&name=${encodeURIComponent(orderData.customerName)}`
       );
     } catch (err) {
-      toast.dismiss(toastId);
-      toast.error("Payment processing failed. Please try again.");
-      setIsProcessing(false);
-      setPaymentStep("idle");
+      toast.error("Something went wrong. Please contact support.");
+      setStep("upi_pending");
     }
   };
 
@@ -157,7 +197,7 @@ export default function PaymentPage() {
       ref={containerRef}
       className="min-h-screen bg-background text-primary pb-24"
     >
-      {/* Progress Bar */}
+      {/* ── Progress Bar ── */}
       <div className="max-w-5xl mx-auto px-4 sm:px-8 pt-6 pb-4">
         <Link
           href="/checkout"
@@ -178,107 +218,157 @@ export default function PaymentPage() {
 
       <div className="max-w-5xl mx-auto px-4 sm:px-8 grid lg:grid-cols-[1fr_420px] gap-10 lg:gap-14 mt-6">
 
-        {/* ── LEFT: PhonePe Payment Panel ── */}
+        {/* ── LEFT: UPI Payment Panel ── */}
         <div className="flex flex-col gap-6">
-          {/* PhonePe branded card */}
-          <div
-            className="rounded-2xl overflow-hidden border border-primary/10 shadow-xl shadow-primary/5"
-            style={{
-              background: "linear-gradient(135deg, #1a0a3c 0%, #2d1b69 50%, #3d2494 100%)",
-            }}
-          >
-            {/* Card header */}
-            <div className="p-6 border-b border-white/10">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  {/* PhonePe Logo Mock */}
-                  <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-lg">
-                    <span className="text-[#5f259f] font-black text-sm tracking-tight">Pe</span>
-                  </div>
+
+          {/* ────────── STEP 1: Choose App ────────── */}
+          {step === "select" && (
+            <div className="rounded-2xl border border-primary/10 overflow-hidden shadow-lg shadow-primary/5">
+              {/* Header */}
+              <div className="p-6 border-b border-primary/8 bg-primary/[0.02]">
+                <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-white font-bold text-sm tracking-widest uppercase">PhonePe</p>
-                    <p className="text-white/50 text-[10px] tracking-widest">Payment Gateway</p>
+                    <p className="text-[10px] uppercase tracking-[0.25em] text-primary/40 mb-1">
+                      Secure UPI Payment
+                    </p>
+                    <h2 className="text-lg font-serif font-bold text-primary uppercase tracking-wider">
+                      Choose Payment App
+                    </h2>
+                  </div>
+                  <div className="flex items-center gap-1.5 bg-green-50 border border-green-100 rounded-full px-3 py-1.5">
+                    <Lock size={10} className="text-green-600" />
+                    <span className="text-[9px] text-green-700 font-bold tracking-wider uppercase">Secured</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-1.5 bg-white/10 rounded-full px-3 py-1.5">
-                  <Lock size={10} className="text-green-400" />
-                  <span className="text-[10px] text-white/80 font-medium tracking-wider">SSL SECURED</span>
+              </div>
+
+              {/* Amount display */}
+              <div className="px-6 pt-6 pb-2">
+                <div className="bg-primary/[0.03] border border-primary/8 rounded-2xl p-5 text-center">
+                  <p className="text-[10px] uppercase tracking-widest text-primary/40 mb-1">Amount to Pay</p>
+                  <p className="text-4xl font-bold font-serif text-primary">
+                    ₹{finalTotal.toLocaleString()}
+                    <span className="text-xl text-primary/40">.00</span>
+                  </p>
+                  <p className="text-[10px] text-primary/30 mt-1 tracking-widest uppercase">
+                    ETHOSS.IN · {items.length} item{items.length > 1 ? "s" : ""}
+                  </p>
                 </div>
               </div>
+
+              {/* UPI ID pill */}
+              <div className="px-6 pt-3 pb-2">
+                <div className="flex items-center gap-2 text-[10px] text-primary/40 uppercase tracking-widest">
+                  <Smartphone size={11} />
+                  <span>Paying to:</span>
+                  <span className="font-mono font-bold text-primary/70">{UPI_ID}</span>
+                </div>
+              </div>
+
+              {/* App Grid */}
+              <div className="p-6 grid grid-cols-2 gap-3">
+                {UPI_APPS.map((app) => (
+                  <button
+                    key={app.name}
+                    onClick={() => handleOpenApp(app)}
+                    className="group flex items-center gap-3 p-4 rounded-xl border border-primary/10 hover:border-primary/30 hover:shadow-md transition-all duration-200 active:scale-[0.97] text-left"
+                  >
+                    {/* App Icon */}
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 font-black text-sm shadow-sm"
+                      style={{ background: app.bg, color: app.color }}
+                    >
+                      {app.label}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-primary tracking-wide">{app.name}</p>
+                      <p className="text-[9px] uppercase tracking-widest text-primary/40 group-hover:text-primary/60 transition-colors">
+                        Open App →
+                      </p>
+                    </div>
+                    <ChevronRight size={14} className="text-primary/20 group-hover:text-primary/50 transition-colors flex-shrink-0" />
+                  </button>
+                ))}
+              </div>
+
+              <p className="px-6 pb-6 text-[10px] text-primary/30 text-center tracking-wide">
+                Tap an app — your UPI app will open automatically to complete payment.
+              </p>
             </div>
+          )}
 
-            {/* Merchant Info */}
-            <div className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-white/5 rounded-xl p-3 border border-white/10">
-                  <p className="text-white/40 text-[9px] uppercase tracking-widest mb-1">Merchant ID</p>
-                  <p className="text-white font-mono text-xs font-bold tracking-wider">{PHONEPE_MERCHANT_ID}</p>
+          {/* ────────── STEP 2: Awaiting Payment Confirmation ────────── */}
+          {step === "upi_pending" && (
+            <div className="rounded-2xl border border-primary/10 overflow-hidden shadow-lg shadow-primary/5">
+              <div className="p-8 flex flex-col items-center text-center gap-5">
+                {/* Check circle */}
+                <div className="w-20 h-20 rounded-full bg-primary/5 border-2 border-primary/20 flex items-center justify-center">
+                  <CheckCircle2 size={36} className="text-primary" strokeWidth={1.5} />
                 </div>
-                <div className="bg-white/5 rounded-xl p-3 border border-white/10">
-                  <p className="text-white/40 text-[9px] uppercase tracking-widest mb-1">Client Version</p>
-                  <p className="text-white font-mono text-xs font-bold tracking-wider">v{PHONEPE_CLIENT_VERSION}</p>
-                </div>
-              </div>
 
-              {/* Payment amount display */}
-              <div className="bg-white/10 rounded-2xl p-5 text-center border border-white/10">
-                <p className="text-white/50 text-[10px] uppercase tracking-widest mb-1">Amount to Pay</p>
-                <p className="text-white text-4xl font-bold font-serif">
-                  ₹{finalTotal.toLocaleString()}
-                  <span className="text-lg text-white/60">.00</span>
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.25em] text-primary/40 mb-2">
+                    Complete Payment in
+                  </p>
+                  <h2 className="text-2xl font-serif font-bold text-primary uppercase tracking-wider">
+                    {selectedApp}
+                  </h2>
+                </div>
+
+                {/* Amount reminder */}
+                <div className="bg-primary/[0.03] border border-primary/8 rounded-2xl px-8 py-4 w-full">
+                  <p className="text-[9px] uppercase tracking-widest text-primary/40 mb-1">Pay exactly</p>
+                  <p className="text-3xl font-bold font-serif text-primary">
+                    ₹{finalTotal.toLocaleString()}<span className="text-lg text-primary/40">.00</span>
+                  </p>
+                </div>
+
+                <p className="text-[11px] text-primary/50 leading-relaxed max-w-xs">
+                  After paying <strong>₹{finalTotal.toLocaleString()}</strong> in {selectedApp}, come back here and tap{" "}
+                  <strong>Confirm Order</strong>.
                 </p>
-                <p className="text-white/40 text-[10px] mt-1 tracking-widest">
-                  ETHOSS.IN · {items.length} item{items.length > 1 ? "s" : ""}
-                </p>
-              </div>
 
-              {/* UPI ID display */}
-              <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                <p className="text-white/40 text-[9px] uppercase tracking-widest mb-2">Paying to</p>
-                <div className="flex items-center gap-2">
-                  <Smartphone size={14} className="text-white/60" />
-                  <p className="text-white text-sm font-medium">ethoss@ybl</p>
+                {/* Confirm Button */}
+                <button
+                  onClick={handleConfirmPayment}
+                  className="w-full py-4 bg-green-600 hover:bg-green-700 text-white font-bold text-sm tracking-widest uppercase rounded-xl transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2 shadow-lg shadow-green-600/20"
+                >
+                  <CheckCircle2 size={18} />
+                  I have Paid — Confirm Order
+                </button>
+
+                {/* Try another app */}
+                <button
+                  onClick={() => setStep("select")}
+                  className="text-[10px] text-primary/40 uppercase tracking-widest hover:text-primary transition-colors flex items-center gap-1"
+                >
+                  <ExternalLink size={11} /> Didn&apos;t work? Try another app
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ────────── STEP 3: Placing Order ────────── */}
+          {step === "confirming" && (
+            <div className="rounded-2xl border border-primary/10 overflow-hidden shadow-lg shadow-primary/5">
+              <div className="p-16 flex flex-col items-center text-center gap-6">
+                <Loader2 size={40} className="animate-spin text-primary/40" />
+                <div>
+                  <p className="text-sm font-bold uppercase tracking-widest text-primary">
+                    Placing your order...
+                  </p>
+                  <p className="text-[10px] text-primary/40 mt-2 tracking-wide">
+                    Saving your order securely. Please don&apos;t close this page.
+                  </p>
                 </div>
               </div>
             </div>
-
-            {/* Pay Button */}
-            <div className="p-6 pt-0">
-              <button
-                onClick={handlePayment}
-                disabled={isProcessing}
-                className="w-full py-4 rounded-xl font-bold text-sm tracking-widest uppercase transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-lg"
-                style={{
-                  background: isProcessing
-                    ? "rgba(255,255,255,0.1)"
-                    : "linear-gradient(135deg, #f8f0ff 0%, #fff 100%)",
-                  color: isProcessing ? "rgba(255,255,255,0.6)" : "#5f259f",
-                  boxShadow: isProcessing ? "none" : "0 4px 20px rgba(95,37,159,0.4)",
-                }}
-              >
-                {isProcessing ? (
-                  <>
-                    <Loader2 size={18} className="animate-spin" />
-                    <span>
-                      {paymentStep === "processing"
-                        ? "Initiating Payment..."
-                        : "Verifying & Securing..."}
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <Zap size={18} />
-                    <span>Pay ₹{finalTotal.toLocaleString()} via PhonePe</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
+          )}
 
           {/* Security badges */}
           <div className="flex flex-wrap items-center justify-center gap-4 py-2">
             {[
-              { icon: ShieldCheck, text: "PCI DSS Compliant" },
+              { icon: ShieldCheck, text: "UPI Secured" },
               { icon: Lock, text: "256-bit SSL" },
               { icon: CheckCircle2, text: "RBI Regulated" },
             ].map(({ icon: Icon, text }) => (
@@ -290,7 +380,7 @@ export default function PaymentPage() {
           </div>
         </div>
 
-        {/* ── RIGHT: Order Summary ── */}
+        {/* ── RIGHT: Order Summary (unchanged) ── */}
         <div className="flex flex-col gap-6">
           <div className="border border-primary/10 rounded-2xl overflow-hidden bg-primary/[0.015]">
             <div className="p-6 border-b border-primary/8">

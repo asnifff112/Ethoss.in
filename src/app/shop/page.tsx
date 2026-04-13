@@ -140,7 +140,7 @@ export default function ShopPage() {
         {filtered.map((p: any) => {
           const isOutOfStock = !p.isAvailable || p.stock <= 0;
           const isLowStock = !isOutOfStock && (p.showLowStock || (p.stock > 0 && p.stock <= 3));
-          const oldPrice = p.price + 300; 
+          const oldPrice = p.original_price ?? null;
 
           return (
             <Link
@@ -175,7 +175,9 @@ export default function ShopPage() {
                   {p.name}
                 </h3>
                 <div className="flex items-center gap-2 text-[13px] md:text-sm font-sans tracking-tight">
-                  <span className="text-primary/70 line-through">₹ {oldPrice.toLocaleString()}.00</span>
+                  {oldPrice && (
+                    <span className="text-primary/70 line-through">₹ {oldPrice.toLocaleString()}.00</span>
+                  )}
                   <span className="font-semibold">₹ {p.price.toLocaleString()}.00</span>
                 </div>
               </div>

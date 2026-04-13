@@ -21,7 +21,8 @@ interface Product {
 const CATEGORIES = [
   { id: "onyx-essence", title: "The Onyx Essence" },
   { id: "earthbound-soul", title: "Earthbound Soul" },
-  { id: "intricate-weaves", title: "Intricate Weaves" }
+  { id: "intricate-weaves", title: "Intricate Weaves" },
+  { id: "celestial-duo", title: "Celestial Duo" }
 ];
 
 export default function AdminProductsPage() {
@@ -49,7 +50,7 @@ export default function AdminProductsPage() {
 
   const fetchProducts = async () => {
     try {
-      const res = await fetch("http://localhost:5000/products");
+      const res = await fetch("/api/admin/products");
       const data = await res.json();
       if (res.ok) setProducts(data);
     } catch (err) {
@@ -108,11 +109,7 @@ export default function AdminProductsPage() {
     };
 
     try {
-      const url = editingProduct 
-        ? `http://localhost:5000/products/${editingProduct.id}` 
-        : "http://localhost:5000/products";
-      
-      const res = await fetch(url, {
+      const res = await fetch("/api/admin/products", {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
@@ -134,8 +131,10 @@ export default function AdminProductsPage() {
     if (!confirm("Are you sure you want to delete this product?")) return;
     
     try {
-      const res = await fetch(`http://localhost:5000/products/${id}`, {
+      const res = await fetch("/api/admin/products", {
         method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id })
       });
 
       if (res.ok) {
@@ -155,7 +154,7 @@ export default function AdminProductsPage() {
 
   const toggleAvailability = async (product: Product) => {
     try {
-      const res = await fetch(`http://localhost:5000/products/${product.id}`, {
+      const res = await fetch("/api/admin/products", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

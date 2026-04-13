@@ -15,7 +15,7 @@ export default function AdminUsersPage() {
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch("http://localhost:5000/users");
+      const res = await fetch("/api/admin/users");
       const data = await res.json();
       if (res.ok) {
         setUsers(data);
@@ -29,10 +29,10 @@ export default function AdminUsersPage() {
 
   const toggleBlock = async (id: string, currentStatus: boolean) => {
     try {
-      const res = await fetch(`http://localhost:5000/users/${id}`, {
+      const res = await fetch("/api/admin/users", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isBlocked: !currentStatus }),
+        body: JSON.stringify({ userId: id, isBlocked: !currentStatus }),
       });
 
       if (res.ok) {

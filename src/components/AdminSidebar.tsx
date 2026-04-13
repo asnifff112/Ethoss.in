@@ -1,11 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { LayoutDashboard, Package, Users, LogOut, Sparkles, MessageSquare, ShoppingBag } from "lucide-react";
+import { useAuthStore } from "@/store/cartStore";
 
 export function AdminSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const logout = useAuthStore((s) => s.logout);
+
+  const handleLogout = () => {
+    logout();
+    localStorage.removeItem("auth-token");
+    sessionStorage.removeItem("auth-token");
+    router.push("/login");
+  };
 
   const navItems = [
     { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -47,7 +57,7 @@ export function AdminSidebar() {
       </nav>
 
       <div className="pt-6 border-t border-primary/10">
-        <button className="flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg w-full text-left transition-colors">
+        <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg w-full text-left transition-colors">
           <LogOut size={20} />
           <span>Logout</span>
         </button>

@@ -37,7 +37,7 @@ export default function ProductPage() {
   // Image gallery from database
   const images = product.image_urls || [];
   const primaryImageUrl = images[0] || "/catsection/img1.jpeg";
-  const oldPrice = product.price + 300; 
+  const oldPrice = (product as any).original_price || product.price + 300;
   
   // Refined Status Logic
   const isOutOfStock = !product.isAvailable || product.stock <= 0;
