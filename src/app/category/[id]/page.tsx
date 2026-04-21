@@ -51,7 +51,7 @@ export default async function CategoryPage({ params }: Props) {
             >
               <div className="aspect-[4/5] bg-primary/[0.03] rounded-xl overflow-hidden mb-4 relative">
                 <Image
-                  src={p.image_url}
+                  src={p.image_urls?.[0] || "/catsection/img1.jpeg"}
                   alt={p.name}
                   fill
                   sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
