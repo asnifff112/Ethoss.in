@@ -1,23 +1,44 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Check, Minus, Plus, ShoppingBag } from "lucide-react";
-import { toast } from "sonner";
+import { ArrowLeft } from "lucide-react";
 import productsData from "@/data/db.json";
-import { useCartStore, useAuthStore } from "@/store/cartStore";
 import gsap from "gsap";
+
+// ─── WhatsApp Config ──────────────────────────────────────────────────────────
+const WHATSAPP_NUMBER = "919497716349";
+const BASE_URL = "https://ethoss.in";
+
+function buildWhatsAppUrl(productName: string, price: number, imageUrl: string): string {
+  const absoluteImageUrl = imageUrl.startsWith("http")
+    ? imageUrl
+    : `${BASE_URL}${imageUrl}`;
+
+  const message =
+    `Hi Ethoss! ✨ I'm interested in purchasing the following piece:\n\n` +
+    `Product: ${productName}\n` +
+    `Price: ₹${price.toLocaleString()}.00\n` +
+    `Image: ${absoluteImageUrl}\n\n` +
+    `Can you guide me on the payment process and shipping details? 🤍`;
+
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+}
 
 export default function ProductPage() {
   const { id } = useParams<{ id: string }>();
-  const router = useRouter();
+  // const router = useRouter();  // SHOWCASE MODE: disabled
   const product = productsData.products.find((p) => p.id === id);
-  const addItem = useCartStore((s) => s.addItem);
-  const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
+  // ============================================================
+  // SHOWCASE MODE — Cart & Auth state disabled.
+  // Restore when backend is ready:
+  // const addItem = useCartStore((s) => s.addItem);
+  // const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
+  // ============================================================
   
-  const [added, setAdded] = useState(false);
+
   const [qty, setQty] = useState(1);
   const [activeIndex, setActiveIndex] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -94,32 +115,8 @@ export default function ProductPage() {
     return () => ctx.revert();
   }, [id]);
 
-  const handleAdd = () => {
-    if (!isLoggedIn) {
-      toast.error("Please sign in to continue shopping.", {
-        description: "You need an account to add items to your cart.",
-      });
-      router.push("/login");
-      return;
-    }
-    for (let i = 0; i < qty; i++) addItem({ ...product, image_url: primaryImageUrl });
-    setAdded(true);
-    toast.success("Added to Cart", { description: `${qty}x ${product.name}` });
-    setTimeout(() => setAdded(false), 2200);
-  };
-
-  const handleBuyNow = () => {
-    if (!isLoggedIn) {
-      toast.error("Please sign in to continue shopping.", {
-        description: "You need an account to add items to your cart.",
-      });
-      router.push("/login");
-      return;
-    }
-    handleAdd();
-    toast.success("Proceeding to Checkout...");
-    router.push("/cart");
-  };
+  // Build the WhatsApp URL for this product
+  const whatsappUrl = buildWhatsAppUrl(product.name, product.price, primaryImageUrl);
 
   return (
     <div ref={containerRef} className="pb-32 lg:pb-16 bg-[#faf5ec] min-h-[100svh] text-primary">
@@ -229,57 +226,35 @@ export default function ProductPage() {
               </p>
             </div>
 
-            {/* SECTION 4: Actions (Quantity & Buttons) */}
+            {/* ─── BUY VIA WHATSAPP CTA ─────────────────────────────────── */}
             <div className="product-anim-item mt-auto pt-6 flex flex-col gap-5">
-              {/* Quantity Selector */}
-              <div className="flex items-center gap-4">
-                <span className="text-[10px] sm:text-xs font-bold tracking-[0.2em] uppercase text-primary/50 w-8">
-                  QTY:
-                </span>
-                <div className="flex items-center border border-primary/20 bg-transparent rounded-[2px] overflow-hidden">
-                  <button
-                    onClick={() => setQty(Math.max(1, qty - 1))}
-                    disabled={isOutOfStock}
-                    className="px-4 py-3 text-primary hover:bg-primary/5 transition-colors active:scale-95 disabled:opacity-30"
-                  >
-                    <Minus size={14} strokeWidth={2} />
-                  </button>
-                  <span className="px-4 py-3 text-sm font-bold text-primary min-w-[40px] text-center font-sans">
-                    {isOutOfStock ? 0 : qty}
-                  </span>
-                  <button
-                    onClick={() => setQty(qty + 1)}
-                    disabled={isOutOfStock || qty >= product.stock}
-                    className="px-4 py-3 text-primary hover:bg-primary/5 transition-colors active:scale-95 disabled:opacity-30"
-                  >
-                    <Plus size={14} strokeWidth={2} />
-                  </button>
+              {isOutOfStock ? (
+                <div className="w-full py-4 text-center text-[11px] tracking-[0.15em] uppercase font-bold text-primary/40 border border-primary/10 rounded-[2px]">
+                  Currently Unavailable
                 </div>
-              </div>
-
-              {/* Side-by-side CTA Buttons */}
-              <div className="flex items-center gap-3 w-full mt-2">
-                <button
-                  onClick={handleAdd}
-                  disabled={isOutOfStock}
-                  className={`flex-1 py-[16px] flex items-center justify-center gap-2 text-[11px] tracking-[0.15em] uppercase font-bold transition-all duration-300 rounded-[2px] active:scale-95 ${
-                    added
-                      ? "bg-[#183a21] text-[#faf5ec] border border-[#183a21]"
-                      : "bg-transparent border border-primary text-primary hover:bg-primary/5"
-                  } disabled:opacity-40 disabled:cursor-not-allowed`}
+              ) : (
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-[18px] flex items-center justify-center gap-3 text-[12px] tracking-[0.2em] uppercase font-bold bg-[#25D366] text-white hover:bg-[#1ebe5d] transition-all duration-300 rounded-[2px] active:scale-95 shadow-[0_4px_24px_rgba(37,211,102,0.25)]"
                 >
-                  {added ? <Check size={16} strokeWidth={1.5} /> : <ShoppingBag size={14} strokeWidth={2} />} 
-                  {added ? "Added" : "Add to Bag"}
-                </button>
-                
-                <button
-                  onClick={handleBuyNow}
-                  disabled={isOutOfStock}
-                  className="flex-1 py-[16px] flex items-center justify-center text-[11px] tracking-[0.15em] uppercase font-bold bg-primary text-[#faf5ec] hover:bg-primary/90 transition-all duration-300 rounded-[2px] active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed border border-primary"
-                >
-                  Buy Now
-                </button>
-              </div>
+                  {/* WhatsApp Icon */}
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                  </svg>
+                  Buy via WhatsApp
+                </a>
+              )}
+              <p className="text-[10px] text-primary/40 tracking-widest uppercase text-center">
+                Tap to chat with us on WhatsApp
+              </p>
             </div>
 
             {/* Delivery/Policy standard texts */}

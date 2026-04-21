@@ -4,8 +4,15 @@ import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/cartStore";
 
+// ============================================================
+// SHOWCASE MODE — Route blocking is now handled by middleware.ts.
+// The routes below (/login, /register) are redirected at the
+// middleware level before this component even renders.
+// Restore full logic when backend is ready.
+// ============================================================
+
 // Routes that are accessible regardless of role
-const PUBLIC_ROUTES = ["/login", "/register"];
+const PUBLIC_ROUTES = ["/login", "/register", "/feedback"];
 // Routes only admin can enter (handled by admin/layout.tsx itself)
 const ADMIN_PREFIX = "/admin";
 // Routes that admins must NOT access — they belong to the user-side UI

@@ -6,21 +6,34 @@ import { usePathname } from "next/navigation";
 import {
   Menu,
   X,
-  ShoppingBag,
-  User,
   ChevronRight,
 } from "lucide-react";
-// selectItemCount ഒഴിവാക്കി
-import { useCartStore, useAuthStore } from "@/store/cartStore";
+// ============================================================
+// SHOWCASE MODE — Auth/Cart icons removed from imports.
+// Re-enable when backend is ready:
+// import { ShoppingBag, User } from "lucide-react";
+// import { useCartStore, useAuthStore } from "@/store/cartStore";
+// ============================================================
 import gsap from "gsap";
 
+// SHOWCASE MODE NAV — Only public informational routes
 const NAV_LINKS = [
   { label: "Home", href: "/" },
-  { label: "Shop", href: "/shop" },
-  { label: "Journals", href: "/journals" },
-  { label: "Studio", href: "/studio" },
+  { label: "Products", href: "/shop" },
+  { label: "Feedback", href: "/feedback" },
   { label: "About", href: "/about" },
 ];
+
+// ============================================================
+// ORIGINAL NAV LINKS (restore when backend is ready):
+// const NAV_LINKS = [
+//   { label: "Home", href: "/" },
+//   { label: "Shop", href: "/shop" },
+//   { label: "Journals", href: "/journals" },
+//   { label: "Studio", href: "/studio" },
+//   { label: "About", href: "/about" },
+// ];
+// ============================================================
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
@@ -28,10 +41,13 @@ export default function Navbar() {
   const pathname = usePathname();
   const mobileNavRef = useRef<HTMLDivElement>(null);
   
-  // ഇതാണ് ശരിയായ രീതി
-  const itemCount = useCartStore((s) => s.items.reduce((total, item) => total + item.quantity, 0));
-  const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
-  const userRole = useAuthStore((s) => s.user?.role);
+  // ============================================================
+  // SHOWCASE MODE — Cart & Auth state disabled.
+  // Restore when backend is ready:
+  // const itemCount = useCartStore((s) => s.items.reduce((total, item) => total + item.quantity, 0));
+  // const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
+  // const userRole = useAuthStore((s) => s.user?.role);
+  // ============================================================
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 20);
@@ -61,8 +77,9 @@ export default function Navbar() {
     return () => ctx.revert();
   }, [open]);
 
-  // Hide entirely on admin routes OR if user is an admin (AuthGuard will redirect them)
-  if (pathname?.startsWith("/admin") || userRole === "admin") {
+  // Hide entirely on admin routes
+  // SHOWCASE MODE: removed userRole check (auth is disabled)
+  if (pathname?.startsWith("/admin")) {
     return null;
   }
 
@@ -110,28 +127,21 @@ export default function Navbar() {
               Ethoss
             </Link>
 
-            <div className="flex items-center gap-3 sm:gap-4">
-              <Link
-                href={isLoggedIn ? "/profile" : "/login"}
-                className="p-2 text-primary/70 hover:text-primary transition-colors"
-                aria-label="Account"
-              >
-                <User size={20} strokeWidth={1.5} />
-              </Link>
+            {/* ============================================================
+              SHOWCASE MODE — User/Cart icons hidden.
+              Restore when backend is ready:
 
-              <Link
-                href="/cart"
-                className="relative p-2 text-primary/70 hover:text-primary transition-colors"
-                aria-label="Cart"
-              >
-                <ShoppingBag size={20} strokeWidth={1.5} />
-                {itemCount > 0 && (
-                  <span className="absolute top-0 right-0 w-[18px] h-[18px] flex items-center justify-center bg-primary text-background text-[10px] font-bold rounded-full">
-                    {itemCount}
-                  </span>
-                )}
-              </Link>
-            </div>
+              <div className="flex items-center gap-3 sm:gap-4">
+                <Link href={isLoggedIn ? "/profile" : "/login"} ...>
+                  <User ... />
+                </Link>
+                <Link href="/cart" ...>
+                  <ShoppingBag ... />
+                  {itemCount > 0 && <span ...>{itemCount}</span>}
+                </Link>
+              </div>
+            ============================================================ */}
+            <div className="w-10" />
           </div>
         </div>
       </header>

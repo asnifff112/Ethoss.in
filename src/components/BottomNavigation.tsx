@@ -2,7 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Shirt, ShoppingCart, User } from "lucide-react";
+import { Home, Shirt, MessageCircle } from "lucide-react";
+// ============================================================
+// SHOWCASE MODE — Cart and Profile icons hidden.
+// Restore when backend is ready:
+// import { ShoppingCart, User } from "lucide-react";
+// ============================================================
 
 export function BottomNavigation() {
   const pathname = usePathname();
@@ -10,11 +15,16 @@ export function BottomNavigation() {
   const isAdmin = pathname.startsWith("/admin");
   if (isAdmin) return null;
 
+  // SHOWCASE MODE NAV — Only public routes visible
   const navItems = [
     { label: "Home", href: "/", icon: Home },
-    { label: "Shop", href: "/shop", icon: Shirt },
-    { label: "Cart", href: "/cart", icon: ShoppingCart },
-    { label: "Profile", href: "/profile", icon: User },
+    { label: "Products", href: "/shop", icon: Shirt },
+    { label: "Feedback", href: "/feedback", icon: MessageCircle },
+    // ============================================================
+    // SHOWCASE MODE — Disabled nav items. Restore when backend ready:
+    // { label: "Cart", href: "/cart", icon: ShoppingCart },
+    // { label: "Profile", href: "/profile", icon: User },
+    // ============================================================
   ];
 
   return (

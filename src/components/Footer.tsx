@@ -41,10 +41,14 @@ export default function Footer() {
             </h4>
             <ul className="space-y-3">
               {[
-                { label: "Shop All", href: "/shop" },
+                { label: "Products", href: "/shop" },
                 { label: "Our Story", href: "/about" },
-                { label: "Cart", href: "/cart" },
+                { label: "Feedback", href: "/feedback" },
                 { label: "Contact", href: "/about" },
+                // ============================================================
+                // SHOWCASE MODE — Cart link hidden. Restore when backend ready:
+                // { label: "Cart", href: "/cart" },
+                // ============================================================
               ].map((l) => (
                 <li key={l.href + l.label}>
                   <Link
