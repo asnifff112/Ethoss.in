@@ -213,10 +213,19 @@ export default function FeedbackPage() {
       if (res.ok) {
         setSubmitted(true);
       } else {
-        toast.error("Something went wrong. Please try again.");
+        // Non-2xx response — surface the real server message
+        let serverMessage = "Server error. Please try again.";
+        try {
+          const errBody = await res.json();
+          serverMessage = errBody?.message || serverMessage;
+        } catch { /* ignore JSON parse failure */ }
+        console.error(`[Feedback Submit] HTTP ${res.status}:`, serverMessage);
+        toast.error(serverMessage);
       }
-    } catch {
-      toast.error("Could not reach the server. Please try again later.");
+    } catch (error) {
+      // Network-level failure (offline, DNS, CORS, etc.)
+      console.error("[Feedback Submit] Network error:", error);
+      toast.error("Could not reach the server. Check your connection and try again.");
     } finally {
       setSubmitting(false);
     }
