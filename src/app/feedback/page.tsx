@@ -1,9 +1,184 @@
 "use client";
 
-import { useState } from "react";
-import { Star, Send, CheckCircle } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Star, Send, CheckCircle, X, MessageSquareQuote } from "lucide-react";
 import { toast } from "sonner";
 
+// ─── Types ────────────────────────────────────────────────────────────────────
+interface Feedback {
+  id: string;
+  userName: string;
+  userEmail?: string;
+  comment: string;
+  rating: number;
+  createdAt: string;
+  status?: string;
+}
+
+// ─── Helper ───────────────────────────────────────────────────────────────────
+function timeAgo(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 30) return `${days}d ago`;
+  return new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+}
+
+// ─── Star Row (read-only) ─────────────────────────────────────────────────────
+function StarRow({ rating }: { rating: number }) {
+  return (
+    <div className="flex items-center gap-0.5">
+      {[1, 2, 3, 4, 5].map((s) => (
+        <Star
+          key={s}
+          size={12}
+          strokeWidth={1.5}
+          className={s <= rating ? "text-amber-500 fill-amber-500" : "text-primary/15"}
+        />
+      ))}
+    </div>
+  );
+}
+
+// ─── View-All Modal ───────────────────────────────────────────────────────────
+function FeedbackModal({ onClose }: { onClose: () => void }) {
+  const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  // Lock body scroll while open
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
+  }, []);
+
+  // Close on Escape key
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [onClose]);
+
+  // Fetch all feedbacks
+  useEffect(() => {
+    async function load() {
+      try {
+        const res = await fetch("/api/admin/feedback");
+        if (!res.ok) throw new Error();
+        const data: Feedback[] = await res.json();
+        // Only show approved / show all if status field absent
+        setFeedbacks(data.filter((f) => !f.status || f.status === "approved"));
+      } catch {
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
+
+  return (
+    /* Backdrop */
+    <div
+      className="fixed inset-0 z-[999] bg-primary/30 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-6"
+      onClick={onClose}
+    >
+      {/* Panel */}
+      <div
+        className="relative bg-[#faf5ec] w-full sm:max-w-lg sm:rounded-[4px] max-h-[85svh] flex flex-col shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-primary/10 flex-shrink-0">
+          <div>
+            <p className="text-[9px] tracking-[0.35em] uppercase text-primary/40 mb-0.5">
+              Community
+            </p>
+            <h2 className="text-lg font-serif text-primary uppercase tracking-widest">
+              All Feedback
+            </h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 -mr-2 text-primary/40 hover:text-primary transition-colors"
+            aria-label="Close"
+          >
+            <X size={18} strokeWidth={1.5} />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="overflow-y-auto flex-1 px-6 py-4">
+          {loading && (
+            <div className="flex flex-col items-center justify-center py-16 gap-3">
+              <div className="w-6 h-6 border-2 border-primary/20 border-t-primary/60 rounded-full animate-spin" />
+              <p className="text-[10px] tracking-widest uppercase text-primary/40">Loading…</p>
+            </div>
+          )}
+
+          {error && !loading && (
+            <p className="text-center text-sm text-primary/40 py-12 tracking-wide">
+              Could not load feedback. Please try again later.
+            </p>
+          )}
+
+          {!loading && !error && feedbacks.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-16 gap-4 text-center">
+              <MessageSquareQuote size={32} strokeWidth={1} className="text-primary/20" />
+              <p className="text-sm text-primary/50 tracking-wide leading-relaxed max-w-[220px]">
+                No feedbacks yet. Be the first to share your thoughts! ✨
+              </p>
+            </div>
+          )}
+
+          {!loading && !error && feedbacks.length > 0 && (
+            <ul className="space-y-0">
+              {feedbacks.map((fb, idx) => (
+                <li
+                  key={fb.id}
+                  className={`py-5 ${idx !== feedbacks.length - 1 ? "border-b border-primary/[0.07]" : ""}`}
+                >
+                  {/* Top row: name + time */}
+                  <div className="flex items-start justify-between gap-4 mb-2">
+                    <p className="text-[13px] font-bold text-primary tracking-wide uppercase leading-none">
+                      {fb.userName}
+                    </p>
+                    <span className="text-[10px] text-primary/30 tracking-widest flex-shrink-0 mt-0.5">
+                      {timeAgo(fb.createdAt)}
+                    </span>
+                  </div>
+
+                  {/* Star rating */}
+                  <StarRow rating={fb.rating} />
+
+                  {/* Comment */}
+                  <p className="text-[13px] text-primary/65 leading-relaxed tracking-wide mt-2">
+                    {fb.comment}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* Footer count */}
+        {!loading && !error && feedbacks.length > 0 && (
+          <div className="px-6 py-3 border-t border-primary/10 flex-shrink-0">
+            <p className="text-[10px] text-primary/30 tracking-widest uppercase text-center">
+              {feedbacks.length} {feedbacks.length === 1 ? "review" : "reviews"} from our community
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
 export default function FeedbackPage() {
   const [formData, setFormData] = useState({
     userName: "",
@@ -14,6 +189,9 @@ export default function FeedbackPage() {
   const [hoveredRating, setHoveredRating] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+
+  const closeModal = useCallback(() => setModalOpen(false), []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,7 +206,7 @@ export default function FeedbackPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
-          status: "pending",
+          status: "approved",
           createdAt: new Date().toISOString(),
         }),
       });
@@ -57,15 +235,24 @@ export default function FeedbackPage() {
         <p className="text-sm text-primary/50 tracking-wide max-w-xs leading-relaxed">
           We truly appreciate your words. Your voice helps us craft better pieces.
         </p>
-        <button
-          onClick={() => {
-            setSubmitted(false);
-            setFormData({ userName: "", userEmail: "", comment: "", rating: 0 });
-          }}
-          className="mt-10 text-[10px] tracking-[0.2em] uppercase font-bold text-primary/40 hover:text-primary transition-colors border-b border-current pb-0.5"
-        >
-          Submit Another
-        </button>
+        <div className="mt-10 flex items-center gap-6">
+          <button
+            onClick={() => {
+              setSubmitted(false);
+              setFormData({ userName: "", userEmail: "", comment: "", rating: 0 });
+            }}
+            className="text-[10px] tracking-[0.2em] uppercase font-bold text-primary/40 hover:text-primary transition-colors border-b border-current pb-0.5"
+          >
+            Submit Another
+          </button>
+          <button
+            onClick={() => setModalOpen(true)}
+            className="text-[10px] tracking-[0.2em] uppercase font-bold text-primary hover:text-primary/60 transition-colors border-b border-current pb-0.5"
+          >
+            View All ↗
+          </button>
+        </div>
+        {modalOpen && <FeedbackModal onClose={closeModal} />}
       </div>
     );
   }
@@ -76,13 +263,24 @@ export default function FeedbackPage() {
 
         {/* Header */}
         <div className="mb-12 text-center">
-          <p className="text-[10px] tracking-[0.35em] uppercase text-primary/40 mb-3">Share Your Experience</p>
+          <p className="text-[10px] tracking-[0.35em] uppercase text-primary/40 mb-3">
+            Share Your Experience
+          </p>
           <h1 className="text-3xl sm:text-4xl font-serif text-primary uppercase tracking-widest mb-4">
             Feedback
           </h1>
           <p className="text-sm text-primary/50 tracking-wide leading-relaxed max-w-sm mx-auto">
             Your words mean everything to us. Tell us about your experience with Ethoss.
           </p>
+
+          {/* View All Button */}
+          <button
+            onClick={() => setModalOpen(true)}
+            className="mt-5 inline-flex items-center gap-2 px-5 py-2 border border-primary/20 rounded-full text-[10px] tracking-[0.2em] uppercase font-bold text-primary/60 hover:border-primary hover:text-primary transition-all duration-300"
+          >
+            <MessageSquareQuote size={12} strokeWidth={2} />
+            View All Reviews
+          </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
@@ -188,6 +386,9 @@ export default function FeedbackPage() {
           Your feedback is private and will only be used to improve our craftsmanship.
         </p>
       </div>
+
+      {/* Modal */}
+      {modalOpen && <FeedbackModal onClose={closeModal} />}
     </div>
   );
 }
