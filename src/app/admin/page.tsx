@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Package, Users, IndianRupee, ArrowUpRight, Loader2 } from "lucide-react";
+import { Package, AlertTriangle, MessageSquare, ArrowUpRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function AdminDashboardPage() {
@@ -40,9 +40,9 @@ export default function AdminDashboardPage() {
         ) : (
           stats.map((stat, i) => {
             const icons: Record<string, any> = {
-                "Total Sales": IndianRupee,
-                "Pending Orders": Package,
-                "Active Users": Users
+                "Total Products": Package,
+                "Sold Out Items": AlertTriangle,
+                "Total Feedbacks": MessageSquare
             };
             const Icon = icons[stat.label] || Package;
             
@@ -52,8 +52,8 @@ export default function AdminDashboardPage() {
                    <div className="w-12 h-12 bg-primary/5 rounded-full flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-500">
                      <Icon size={24} />
                    </div>
-                   <div className="flex items-center text-[10px] font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full gap-1 tracking-widest uppercase">
-                     <ArrowUpRight size={12} /> {stat.change}
+                   <div className="flex items-center text-[10px] font-bold text-primary/50 bg-primary/5 px-3 py-1 rounded-full gap-1 tracking-widest uppercase">
+                     {stat.change}
                    </div>
                  </div>
                  <div>
@@ -69,14 +69,26 @@ export default function AdminDashboardPage() {
         )}
       </div>
       
-      {/* Visual Data Representation Placeholder */}
-      <div className="bg-white p-8 rounded-3xl border border-primary/10 shadow-sm h-96 flex flex-col justify-center items-center relative overflow-hidden group">
-         <div className="absolute inset-0 bg-primary/[0.01] group-hover:bg-transparent transition-colors" />
-         <div className="flex flex-col items-center gap-4 relative z-10">
-            <Loader2 className="text-primary/10 animate-spin-slow" size={48} strokeWidth={1} />
-            <p className="text-[10px] text-primary/30 uppercase tracking-[0.5em] font-bold animate-pulse">
-               Visualizing Growth Trends...
-            </p>
+      {/* Quick Actions Panel */}
+      <div className="bg-white p-8 rounded-3xl border border-primary/10 shadow-sm relative overflow-hidden group">
+         <h2 className="text-xs font-bold tracking-[0.2em] uppercase text-primary/40 mb-6">Quick Actions</h2>
+         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+           <a href="/admin/products" className="flex items-center gap-4 p-4 rounded-2xl border border-primary/10 hover:border-primary/30 hover:bg-primary/[0.02] transition-all group/item">
+             <Package size={20} className="text-primary/40 group-hover/item:text-primary transition-colors" />
+             <div>
+               <span className="text-sm font-medium text-primary">Manage Products</span>
+               <p className="text-[10px] text-primary/40 tracking-wider">Add, edit, or remove items</p>
+             </div>
+             <ArrowUpRight size={14} className="ml-auto text-primary/20 group-hover/item:text-primary/60 transition-colors" />
+           </a>
+           <a href="/admin/feedback" className="flex items-center gap-4 p-4 rounded-2xl border border-primary/10 hover:border-primary/30 hover:bg-primary/[0.02] transition-all group/item">
+             <MessageSquare size={20} className="text-primary/40 group-hover/item:text-primary transition-colors" />
+             <div>
+               <span className="text-sm font-medium text-primary">Customer Feedback</span>
+               <p className="text-[10px] text-primary/40 tracking-wider">View messages & reviews</p>
+             </div>
+             <ArrowUpRight size={14} className="ml-auto text-primary/20 group-hover/item:text-primary/60 transition-colors" />
+           </a>
          </div>
       </div>
     </div>

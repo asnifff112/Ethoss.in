@@ -13,7 +13,7 @@ async function writeDb(data: unknown) {
   await fs.writeFile(DB_PATH, JSON.stringify(data, null, 2));
 }
 
-// PATCH /api/products/[id] — update product fields (e.g. stock sync)
+// PATCH /api/products/[id] — toggle sold out status
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -48,30 +48,11 @@ export async function PATCH(
       );
     }
 
-    // Special: decrementBy — subtract purchased quantity from current stock
-    if (typeof updates.decrementBy === "number" && updates.decrementBy > 0) {
-      const currentStock: number = db.products[productIndex].stock ?? 0;
-      const newStock = Math.max(0, currentStock - updates.decrementBy);
-      db.products[productIndex].stock = newStock;
-
-      // Auto-set availability flags based on new stock level
-      if (newStock === 0) {
-        db.products[productIndex].isAvailable = false;
-        db.products[productIndex].showLowStock = false;
-      } else if (newStock <= 3) {
-        db.products[productIndex].isAvailable = true;
-        db.products[productIndex].showLowStock = true;
-      } else {
-        db.products[productIndex].isAvailable = true;
-        db.products[productIndex].showLowStock = false;
-      }
-    } else {
-      // Apply explicit field updates (only allow safe fields)
-      const allowedFields = ["isAvailable", "stock", "showLowStock"];
-      for (const field of allowedFields) {
-        if (field in updates) {
-          db.products[productIndex][field] = updates[field];
-        }
+    // Apply explicit field updates (only allow safe fields)
+    const allowedFields = ["is_sold_out", "price", "original_price", "delivery_charge", "caption"];
+    for (const field of allowedFields) {
+      if (field in updates) {
+        db.products[productIndex][field] = updates[field];
       }
     }
 

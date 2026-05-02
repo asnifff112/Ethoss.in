@@ -51,12 +51,19 @@ export default async function CategoryPage({ params }: Props) {
             >
               <div className="aspect-[4/5] bg-primary/[0.03] rounded-xl overflow-hidden mb-4 relative">
                 <Image
-                  src={p.image_urls?.[0] || "/catsection/img1.jpeg"}
+                  src={p.images?.[0] || "/catsection/img1.jpeg"}
                   alt={p.name}
                   fill
                   sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                  className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                  className={`object-cover group-hover:scale-105 transition-transform duration-700 ease-out ${p.is_sold_out ? "brightness-50" : ""}`}
                 />
+                {p.is_sold_out && (
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-10">
+                    <span className="bg-red-600 text-white text-[10px] font-black px-4 py-1.5 uppercase tracking-[0.2em] rounded-sm shadow-lg animate-status-blink">
+                      SOLD OUT
+                    </span>
+                  </div>
+                )}
               </div>
               <div className="flex flex-col">
                 <p className="text-[10px] tracking-[0.2em] uppercase text-primary/40 mb-1">
@@ -65,9 +72,12 @@ export default async function CategoryPage({ params }: Props) {
                 <h3 className="text-sm font-medium text-primary tracking-wide uppercase line-clamp-1">
                   {p.name}
                 </h3>
-                <p className="text-primary/60 text-xs mt-1">
-                  ₹{p.price.toLocaleString()}
-                </p>
+                <div className="flex items-center gap-2 mt-1">
+                  {p.original_price > p.price && (
+                    <span className="text-primary/50 text-xs line-through decoration-red-400">₹{p.original_price.toLocaleString()}</span>
+                  )}
+                  <span className="text-primary/60 text-xs">₹{p.price.toLocaleString()}</span>
+                </div>
               </div>
             </Link>
           ))}
@@ -76,3 +86,4 @@ export default async function CategoryPage({ params }: Props) {
     </div>
   );
 }
+

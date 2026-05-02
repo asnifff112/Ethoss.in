@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { AdminSidebar } from "@/components/AdminSidebar";
-import { useAuthStore } from "@/store/cartStore";
-import { toast } from "sonner";
+import { useAuthStore } from "@/store/authStore";
 import { Loader2 } from "lucide-react";
 
 export default function AdminLayout({
@@ -16,40 +15,40 @@ export default function AdminLayout({
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
   const hasHydrated = useAuthStore((s) => s._hasHydrated);
   const router = useRouter();
+  const pathname = usePathname();
+
+  // The login page lives inside /admin but should NOT be protected
+  const isLoginPage = pathname === "/admin/login";
 
   useEffect(() => {
-    // ── CRITICAL: Do NOT run any redirect until localStorage has fully hydrated ──
-    // Without this, isLoggedIn is false on every refresh and admin gets kicked out.
     if (!hasHydrated) return;
+    if (isLoginPage) return; // never redirect away from login page
 
-    if (!isLoggedIn) {
-      toast.error("Please sign in to access the admin panel.");
-      router.replace("/login");
-      return;
+    if (!isLoggedIn || user?.role !== "admin") {
+      router.replace("/admin/login");
     }
+  }, [hasHydrated, isLoggedIn, user, router, isLoginPage, pathname]);
 
-    if (user?.role !== "admin") {
-      toast.error("Unauthorized. Admin access required.");
-      router.replace("/");
-    }
-  }, [hasHydrated, isLoggedIn, user, router]);
-
-  // ── Phase 1: Show spinner while localStorage is being read ──
-  // This is the key fix: previously this showed "Access Denied" during hydration
+  // ── Phase 1: Spinner while localStorage is being read ──
   if (!hasHydrated) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="animate-spin text-primary/40" size={32} strokeWidth={1.5} />
           <p className="text-[10px] text-primary/30 uppercase tracking-[0.4em] font-medium">
-            Loading Admin Panel...
+            Loading...
           </p>
         </div>
       </div>
     );
   }
 
-  // ── Phase 2: After hydration — not authenticated or not admin ──
+  // ── Login page: render without sidebar/protection ──
+  if (isLoginPage) {
+    return <>{children}</>;
+  }
+
+  // ── Phase 2: Not authenticated — show redirect screen ──
   if (!isLoggedIn || user?.role !== "admin") {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center">

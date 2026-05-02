@@ -9,7 +9,7 @@
     {
       "id": "earthbound-soul",
       "title": "Earthbound Soul",
-      "description": "Raw textures meet refined craftsmanship. Each bead tells a story of the earth’s natural artistry.",
+      "description": "Raw textures meet refined craftsmanship. Each bead tells a story of the earth's natural artistry.",
       "image_url": "/earthbound-soul.png"
     },
     {
@@ -27,85 +27,35 @@
   ],
   "products": [
     {
+      "id": "p-1",
       "name": "Onyx Beads Bracelet",
-      "description": "Handcrafted minimalist onyx beads.",
-      "price": 1200,
+      "caption": "Handcrafted minimalist onyx beads.",
       "original_price": 1500,
-      "shippingPrice": 50,
+      "price": 1200,
+      "delivery_charge": 50,
       "category_id": "onyx-essence",
-      "stock": 0,
-      "image_urls": [
+      "images": [
         "/catsection/img1.jpeg",
         "/catsection/img2.jpeg",
         "/catsection/img3.jpeg"
       ],
-      "isAvailable": false,
-      "showLowStock": false,
-      "id": "p-1"
+      "is_sold_out": true
     },
     {
       "id": "p-2",
       "name": "Earthbound Soul Necklace",
-      "description": "Raw textures and refined craftsmanship.",
-      "price": 2500,
+      "caption": "Raw textures and refined craftsmanship.",
       "original_price": 2800,
-      "shippingPrice": 0,
+      "price": 2500,
+      "delivery_charge": 0,
       "category_id": "earthbound-soul",
-      "stock": 1,
-      "image_urls": [
+      "images": [
         "/earthbound-soul.png",
         "/catsection/img2.jpeg",
         "/catsection/img3.jpeg"
       ],
-      "isAvailable": true,
-      "showLowStock": true
+      "is_sold_out": false
     }
   ],
-  "users": [
-    {
-      "id": "u-admin",
-      "name": "Ethoss Admin",
-      "email": "ethoss.in@gmail.com",
-      "password": "asnifnafila",
-      "role": "admin",
-      "isBlocked": false,
-      "order_history": []
-    },
-    {
-      "id": "u-1775844444937",
-      "name": "asnif",
-      "email": "ponnus@gmail.com",
-      "password": "123456",
-      "order_history": []
-    }
-  ],
-  "orders": [
-    {},
-    {
-      "id": "ord-1775846379211",
-      "userId": "u-1775844444937",
-      "customerName": "asnif aziii",
-      "customerEmail": "ponnus@gmail.com",
-      "phone": "09746156270",
-      "address": "Chettippadi, Juhi, Anappadi, Malappuram, India - Kerala, 676319",
-      "productName": "Onyx Beads Bracelet",
-      "quantity": 1,
-      "totalPrice": 1300,
-      "status": "Processing",
-      "paymentStatus": "Paid",
-      "paymentMethod": "PhonePe",
-      "createdAt": "2026-04-10T18:40:03.698Z",
-      "notes": "",
-      "items": [
-        {
-          "id": "p-1",
-          "name": "Onyx Beads Bracelet",
-          "quantity": 1,
-          "price": 1200,
-          "image_url": "/catsection/img1.jpeg",
-          "shipping": 50
-        }
-      ]
-    }
-  ]
+  "feedbacks": []
 }

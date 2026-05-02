@@ -21,12 +21,15 @@ export async function POST(request: Request) {
     const db = JSON.parse(fileContent);
 
     const newProduct = {
-      ...product,
       id: `p-${Date.now()}`,
-      image_urls: product.image_urls || [],
-      shippingPrice: product.shippingPrice || 0,
-      isAvailable: product.isAvailable !== undefined ? product.isAvailable : true,
-      showLowStock: product.showLowStock !== undefined ? product.showLowStock : false
+      name: product.name || "",
+      caption: product.caption || "",
+      original_price: product.original_price || 0,
+      price: product.price || 0,
+      delivery_charge: product.delivery_charge || 0,
+      category_id: product.category_id || "",
+      images: product.images || [],
+      is_sold_out: product.is_sold_out ?? false,
     };
 
     db.products.push(newProduct);
@@ -51,10 +54,14 @@ export async function PUT(request: Request) {
 
     db.products[index] = {
       ...db.products[index],
-      ...product,
-      image_urls: product.image_urls || db.products[index].image_urls || [],
-      isAvailable: product.isAvailable !== undefined ? product.isAvailable : db.products[index].isAvailable,
-      showLowStock: product.showLowStock !== undefined ? product.showLowStock : db.products[index].showLowStock
+      name: product.name ?? db.products[index].name,
+      caption: product.caption ?? db.products[index].caption,
+      original_price: product.original_price ?? db.products[index].original_price,
+      price: product.price ?? db.products[index].price,
+      delivery_charge: product.delivery_charge ?? db.products[index].delivery_charge,
+      category_id: product.category_id ?? db.products[index].category_id,
+      images: product.images ?? db.products[index].images,
+      is_sold_out: product.is_sold_out ?? db.products[index].is_sold_out,
     };
 
     await fs.writeFile(DB_PATH, JSON.stringify(db, null, 2));

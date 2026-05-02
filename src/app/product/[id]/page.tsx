@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Truck } from "lucide-react";
 import productsData from "@/data/db.json";
 import gsap from "gsap";
 
@@ -29,17 +29,8 @@ function buildWhatsAppUrl(productName: string, price: number, imageUrl: string):
 
 export default function ProductPage() {
   const { id } = useParams<{ id: string }>();
-  // const router = useRouter();  // SHOWCASE MODE: disabled
   const product = productsData.products.find((p) => p.id === id);
-  // ============================================================
-  // SHOWCASE MODE — Cart & Auth state disabled.
-  // Restore when backend is ready:
-  // const addItem = useCartStore((s) => s.addItem);
-  // const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
-  // ============================================================
-  
 
-  const [qty, setQty] = useState(1);
   const [activeIndex, setActiveIndex] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -55,19 +46,16 @@ export default function ProductPage() {
     );
   }
 
-  // Image gallery from database
-  const images = product.image_urls || [];
+  // Image gallery from database (new schema: `images`)
+  const images = product.images || [];
   const primaryImageUrl = images[0] || "/catsection/img1.jpeg";
-  const oldPrice = (product as any).original_price || product.price + 300;
-  
-  // Refined Status Logic
-  const isOutOfStock = !product.isAvailable || product.stock <= 0;
-  const isLowStock = !isOutOfStock && (product.showLowStock || (product.stock > 0 && product.stock <= 3));
-  const isLimitedEdition = !isOutOfStock && !isLowStock;
+  const isSoldOut = product.is_sold_out;
+  const hasDiscount = product.original_price > product.price;
+  const discountPercent = hasDiscount
+    ? Math.round(((product.original_price - product.price) / product.original_price) * 100)
+    : 0;
 
   const categoryName = productsData.categories.find(c => c.id === product.category_id)?.title || "COLLECTION";
-  
-  // ... (auto-swipe and GSAP effects remain the same)
 
   // Auto swiping logic
   useEffect(() => {
@@ -136,7 +124,7 @@ export default function ProductPage() {
             <div 
               ref={scrollRef}
               onScroll={handleScroll}
-              className="w-full aspect-[4/5] md:rounded-[4px] overflow-x-auto snap-x snap-mandatory flex hide-scrollbar"
+              className="w-full aspect-[4/5] md:rounded-[4px] overflow-x-auto snap-x snap-mandatory flex hide-scrollbar relative"
               style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
               {images.map((img, idx) => (
@@ -147,12 +135,20 @@ export default function ProductPage() {
                       fill
                       priority={idx === 0}
                       sizes="(max-width: 1024px) 100vw, 50vw"
-                      className="object-cover"
+                      className={`object-cover ${isSoldOut ? "brightness-[0.6]" : ""}`}
                     />
                 </div>
               ))}
+
+              {/* SOLD OUT Overlay on gallery */}
+              {isSoldOut && (
+                <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+                  <div className="bg-red-600/90 backdrop-blur-sm text-white px-8 py-3 rounded-sm shadow-2xl">
+                    <span className="text-lg font-black tracking-[0.3em] uppercase">SOLD OUT</span>
+                  </div>
+                </div>
+              )}
             </div>
-            {/* JSX styling for webkit hide-scrollbar if not in global css */}
             <style jsx>{`
               .hide-scrollbar::-webkit-scrollbar {
                 display: none;
@@ -186,17 +182,12 @@ export default function ProductPage() {
             {/* SECTION 2: Badges & Title */}
             <div className="product-anim-item mt-2 mb-4">
               <div className="h-6 mb-2">
-                {(!product.isAvailable || product.stock <= 0) && (
+                {isSoldOut && (
                   <span className="inline-block bg-red-600 text-white text-[10px] font-bold px-4 py-1.5 uppercase tracking-widest rounded-full shadow-lg border border-red-500/30 animate-status-blink mb-6">
-                    OUT OF STOCK
+                    SOLD OUT
                   </span>
                 )}
-                {product.isAvailable && product.stock > 0 && (product.showLowStock || product.stock <= 3) && (
-                  <span className="inline-block bg-amber-500 text-white text-[10px] font-bold px-4 py-1.5 uppercase tracking-widest rounded-full shadow-lg border border-amber-400/30 animate-status-pulse mb-6">
-                    RUNNING OUT OF STOCK
-                  </span>
-                )}
-                {isLimitedEdition && (
+                {!isSoldOut && (
                   <span className="text-[10px] md:text-xs font-bold tracking-[0.15em] uppercase text-primary/40">
                     LIMITED EDITION
                   </span>
@@ -212,24 +203,41 @@ export default function ProductPage() {
 
             {/* SECTION 3: Price & Description */}
             <div className="product-anim-item mb-8">
-              <div className="flex items-end gap-3 mb-6">
-                <p className="text-[15px] font-bold text-primary/40 line-through font-sans">
-                  ₹{oldPrice.toLocaleString()}.00
-                </p>
-                <p className="text-[20px] font-bold font-sans text-[#b22222]">
+              <div className="flex items-end gap-3 mb-2">
+                {hasDiscount && (
+                  <p className="text-[15px] font-bold text-primary/40 line-through decoration-red-400 decoration-2 font-sans">
+                    ₹{product.original_price.toLocaleString()}.00
+                  </p>
+                )}
+                <p className={`text-[20px] font-bold font-sans ${isSoldOut ? "text-primary/40" : "text-[#b22222]"}`}>
                   ₹{product.price.toLocaleString()}.00
                 </p>
+                {hasDiscount && (
+                  <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-1 rounded-sm tracking-wider">
+                    {discountPercent}% OFF
+                  </span>
+                )}
+              </div>
+
+              {/* Delivery Charge */}
+              <div className="flex items-center gap-1.5 mb-6">
+                <Truck size={12} className="text-primary/40" />
+                <span className="text-[11px] text-primary/50 tracking-wider">
+                  {product.delivery_charge > 0 
+                    ? `Delivery: ₹${product.delivery_charge}` 
+                    : "FREE Delivery"}
+                </span>
               </div>
               
               <p className="text-primary/70 text-[13px] tracking-wide leading-relaxed max-w-xl">
-                {product.description}
+                {product.caption}
               </p>
             </div>
 
             {/* ─── BUY VIA WHATSAPP CTA ─────────────────────────────────── */}
             <div className="product-anim-item mt-auto pt-6 flex flex-col gap-5">
-              {isOutOfStock ? (
-                <div className="w-full py-4 text-center text-[11px] tracking-[0.15em] uppercase font-bold text-primary/40 border border-primary/10 rounded-[2px]">
+              {isSoldOut ? (
+                <div className="w-full py-4 text-center text-[11px] tracking-[0.15em] uppercase font-bold text-primary/40 border border-primary/10 rounded-[2px] bg-primary/[0.03]">
                   Currently Unavailable
                 </div>
               ) : (
@@ -252,9 +260,11 @@ export default function ProductPage() {
                   Buy via WhatsApp
                 </a>
               )}
-              <p className="text-[10px] text-primary/40 tracking-widest uppercase text-center">
-                Tap to chat with us on WhatsApp
-              </p>
+              {!isSoldOut && (
+                <p className="text-[10px] text-primary/40 tracking-widest uppercase text-center">
+                  Tap to chat with us on WhatsApp
+                </p>
+              )}
             </div>
 
             {/* Delivery/Policy standard texts */}

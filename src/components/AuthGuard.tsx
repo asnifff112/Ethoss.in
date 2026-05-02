@@ -2,31 +2,14 @@
 
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { useAuthStore } from "@/store/cartStore";
+import { useAuthStore } from "@/store/authStore";
 
 // ============================================================
-// SHOWCASE MODE — Route blocking is now handled by middleware.ts.
-// The routes below (/login, /register) are redirected at the
-// middleware level before this component even renders.
-// Restore full logic when backend is ready.
+// WHATSAPP CHECKOUT MODE — No user accounts.
+// AuthGuard only enforces admin-specific routing rules.
 // ============================================================
 
-// Routes that are accessible regardless of role
-const PUBLIC_ROUTES = ["/login", "/register", "/feedback"];
-// Routes only admin can enter (handled by admin/layout.tsx itself)
 const ADMIN_PREFIX = "/admin";
-// Routes that admins must NOT access — they belong to the user-side UI
-const USER_ONLY_PREFIXES = [
-  "/cart",
-  "/checkout",
-  "/profile",
-  "/shop",
-  "/product",
-  "/category",
-  "/journals",
-  "/studio",
-  "/about",
-];
 
 export default function AuthGuard({
   children,
@@ -40,32 +23,16 @@ export default function AuthGuard({
   const hasHydrated = useAuthStore((s) => s._hasHydrated);
 
   useEffect(() => {
-    // ── Wait for Zustand to hydrate from localStorage before any decision ──
     if (!hasHydrated) return;
-
-    const isPublic = PUBLIC_ROUTES.some(
-      (r) => pathname === r || pathname?.startsWith(r + "/")
-    );
-    const isAdminRoute = pathname?.startsWith(ADMIN_PREFIX);
-    const isHomePage = pathname === "/";
-
-    // ── Not logged in: nothing to enforce at this level ──
     if (!isLoggedIn || !user) return;
 
     const isAdmin = user.role === "admin";
 
     if (isAdmin) {
-      // Admin landed on home page → send to dashboard immediately
-      if (isHomePage) {
+      // Admin on home page → redirect to dashboard
+      if (pathname === "/") {
         router.replace("/admin");
         return;
-      }
-      // Admin on a user-only route → send to dashboard
-      const isUserOnlyRoute = USER_ONLY_PREFIXES.some((prefix) =>
-        pathname?.startsWith(prefix)
-      );
-      if (isUserOnlyRoute && !isPublic) {
-        router.replace("/admin");
       }
     }
   }, [hasHydrated, isLoggedIn, user, pathname, router]);

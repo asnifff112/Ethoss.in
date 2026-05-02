@@ -2,10 +2,9 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 // ============================================================
-// SHOWCASE MODE — ROUTE REDIRECT MIDDLEWARE
-// All e-commerce transactional routes are disabled.
-// Re-enable these when the backend is ready by removing the
-// redirect logic below (keep DISABLED_ROUTES for reference).
+// WHATSAPP CHECKOUT MODE — User accounts are removed.
+// Only /login (admin) and /admin/* are gated routes.
+// All old user-specific routes redirect to home.
 // ============================================================
 
 const DISABLED_ROUTES = [
@@ -13,20 +12,18 @@ const DISABLED_ROUTES = [
   "/register",
   "/cart",
   "/checkout",
-  "/wishlist",
   "/profile",
 ];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Check if the current route is a disabled route
+  // Redirect all deprecated user routes to home
   const isDisabled = DISABLED_ROUTES.some(
     (route) => pathname === route || pathname.startsWith(route + "/")
   );
 
   if (isDisabled) {
-    // Redirect to home page
     const homeUrl = new URL("/", request.url);
     return NextResponse.redirect(homeUrl);
   }

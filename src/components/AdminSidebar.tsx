@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Package, Users, LogOut, Sparkles, MessageSquare, ShoppingBag } from "lucide-react";
-import { useAuthStore } from "@/store/cartStore";
+import { LayoutDashboard, Package, LogOut, Sparkles, MessageSquare } from "lucide-react";
+import { useAuthStore } from "@/store/authStore";
 
 export function AdminSidebar() {
   const pathname = usePathname();
@@ -12,18 +12,14 @@ export function AdminSidebar() {
 
   const handleLogout = () => {
     logout();
-    localStorage.removeItem("auth-token");
-    sessionStorage.removeItem("auth-token");
-    router.push("/login");
+    router.push("/admin/login");
   };
 
   const navItems = [
     { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
-    { label: "Orders", href: "/admin/orders", icon: ShoppingBag },
     { label: "Products", href: "/admin/products", icon: Package },
     { label: "Studio", href: "/admin/studio", icon: Sparkles },
     { label: "Feedback", href: "/admin/feedback", icon: MessageSquare },
-    { label: "Users", href: "/admin/users", icon: Users },
   ];
 
   return (

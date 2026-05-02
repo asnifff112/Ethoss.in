@@ -109,7 +109,7 @@ export default function ShopPage() {
                value={sortOrder}
                onChange={(e) => setSortOrder(e.target.value)}
                className="bg-transparent border border-primary/15 text-primary text-xs tracking-widest uppercase rounded-full px-4 py-2 outline-none focus:border-primary/40 cursor-pointer appearance-none min-w-[160px]"
-               style={{ backgroundImage: `url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%231a2f67%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 1rem top 50%", backgroundSize: "0.65rem auto" }}
+               style={{ backgroundImage: `url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%221a2f67%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 1rem top 50%", backgroundSize: "0.65rem auto" }}
              >
               <option value="default">Default</option>
               <option value="price-asc">Price: Low to High</option>
@@ -137,10 +137,8 @@ export default function ShopPage() {
 
       {/* --- PRODUCT GRID --- */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-[2px] md:gap-8 px-[1px] md:px-0 mt-[2px] md:mt-0">
-        {filtered.map((p: any) => {
-          const isOutOfStock = !p.isAvailable || p.stock <= 0;
-          const isLowStock = !isOutOfStock && (p.showLowStock || (p.stock > 0 && p.stock <= 3));
-          const oldPrice = p.original_price ?? null;
+        {filtered.map((p) => {
+          const isSoldOut = p.is_sold_out;
 
           return (
             <Link
@@ -150,23 +148,20 @@ export default function ShopPage() {
             >
               <div className="w-full aspect-[3/4] overflow-hidden bg-[#F1F1F1] relative">
                 <Image
-                  src={p.image_urls?.[0] || "/catsection/img1.jpeg"}
+                  src={p.images?.[0] || "/catsection/img1.jpeg"}
                   alt={p.name}
                   fill
                   sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-                  className="object-cover transition-transform duration-700 md:group-hover:scale-105"
+                  className={`object-cover transition-transform duration-700 md:group-hover:scale-105 ${isSoldOut ? "brightness-50" : ""}`}
                 />
                 
-                {/* Blinking Badge */}
-                {(!p.isAvailable || p.stock <= 0) && (
-                  <span className="absolute top-4 left-4 z-10 bg-red-600 text-white text-[10px] font-bold px-3 py-1 uppercase tracking-widest rounded-full shadow-lg border border-red-500/30 animate-status-blink">
-                    OUT OF STOCK
-                  </span>
-                )}
-                {p.isAvailable && p.stock > 0 && (p.showLowStock || p.stock <= 3) && (
-                  <span className="absolute top-4 left-4 z-10 bg-amber-500 text-white text-[10px] font-bold px-3 py-1 uppercase tracking-widest rounded-full shadow-lg border border-amber-400/30 animate-status-pulse">
-                    RUNNING OUT OF STOCK
-                  </span>
+                {/* SOLD OUT Overlay */}
+                {isSoldOut && (
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-10">
+                    <span className="bg-red-600 text-white text-[11px] font-black px-5 py-2 uppercase tracking-[0.25em] rounded-sm shadow-2xl border border-red-400/30 animate-status-blink">
+                      SOLD OUT
+                    </span>
+                  </div>
                 )}
               </div>
               
@@ -175,10 +170,17 @@ export default function ShopPage() {
                   {p.name}
                 </h3>
                 <div className="flex items-center gap-2 text-[13px] md:text-sm font-sans tracking-tight">
-                  {oldPrice && (
-                    <span className="text-primary/70 line-through">₹ {oldPrice.toLocaleString()}.00</span>
+                  {p.original_price > p.price && (
+                    <span className="text-primary/50 line-through decoration-red-400 decoration-2">₹{p.original_price.toLocaleString()}</span>
                   )}
-                  <span className="font-semibold">₹ {p.price.toLocaleString()}.00</span>
+                  <span className={`font-semibold ${isSoldOut ? "text-primary/40" : "text-[#b22222]"}`}>
+                    ₹{p.price.toLocaleString()}
+                  </span>
+                  {p.original_price > p.price && (
+                    <span className="text-[10px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded-sm tracking-wider">
+                      {Math.round(((p.original_price - p.price) / p.original_price) * 100)}% OFF
+                    </span>
+                  )}
                 </div>
               </div>
             </Link>
