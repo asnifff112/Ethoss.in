@@ -27,32 +27,17 @@
   ],
   "products": [
     {
-      "id": "p-1",
-      "name": "Onyx Beads Bracelet",
-      "caption": "Handcrafted minimalist onyx beads.",
-      "original_price": 1500,
-      "price": 1200,
-      "delivery_charge": 50,
-      "category_id": "onyx-essence",
-      "images": [
-        "/catsection/img1.jpeg",
-        "/catsection/img2.jpeg",
-        "/catsection/img3.jpeg"
-      ],
-      "is_sold_out": true
-    },
-    {
-      "id": "p-2",
-      "name": "Earthbound Soul Necklace",
-      "caption": "Raw textures and refined craftsmanship.",
-      "original_price": 2800,
-      "price": 2500,
-      "delivery_charge": 0,
+      "id": "p-1777968749286",
+      "name": "Lave bead",
+      "caption": "A vibrant beaded bracelet designed in a deep purple and soft tone Lightweight, stretchable ,unisex and goes with everything",
+      "original_price": 149,
+      "price": 99,
+      "delivery_charge": 39,
       "category_id": "earthbound-soul",
       "images": [
-        "/earthbound-soul.png",
-        "/catsection/img2.jpeg",
-        "/catsection/img3.jpeg"
+        "https://res.cloudinary.com/dwwktwox5/image/upload/v1777968719/ethoss-products/jfs9lj00iqhc4kuauk65.jpg",
+        "https://res.cloudinary.com/dwwktwox5/image/upload/v1777968729/ethoss-products/tnqwv0oebisrfbve9njk.jpg",
+        "https://res.cloudinary.com/dwwktwox5/image/upload/v1777968739/ethoss-products/dasba9b77khicum6zzlv.jpg"
       ],
       "is_sold_out": false
     }
