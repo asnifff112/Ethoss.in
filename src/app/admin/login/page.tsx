@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/authStore";
+import { adminLoginAction } from "@/app/actions/auth";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -18,20 +19,14 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/admin/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      const data = await adminLoginAction(email, password);
 
-      const data = await res.json();
-
-      if (res.ok && data.success) {
+      if (data.success && data.user) {
         login(data.user);
         toast.success("Welcome back, Admin!");
         router.replace("/admin");
       } else {
-        toast.error(data.message || "Invalid credentials");
+        toast.error(data.error || "Invalid credentials");
       }
     } catch (error) {
       console.error("Login error:", error);
