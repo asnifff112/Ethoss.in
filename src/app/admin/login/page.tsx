@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
-import { useAuthStore } from "@/store/authStore";
+import { useAuthStore, type User } from "@/store/authStore";
 import { adminLoginAction } from "@/app/actions/auth";
 
 export default function AdminLoginPage() {
@@ -22,7 +22,7 @@ export default function AdminLoginPage() {
       const data = await adminLoginAction(email, password);
 
       if (data.success && data.user) {
-        login(data.user);
+        login(data.user as User);
         toast.success("Welcome back, Admin!");
         router.replace("/admin");
       } else {
