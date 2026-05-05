@@ -17,21 +17,28 @@ export default function AdminLoginPage() {
     e.preventDefault();
     setLoading(true);
 
-    // Small delay to simulate auth check
-    await new Promise((r) => setTimeout(r, 400));
+    try {
+      const res = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    const validEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
-    const validPass = process.env.NEXT_PUBLIC_ADMIN_PASS;
+      const data = await res.json();
 
-    if (email === validEmail && password === validPass) {
-      login({ id: "admin", name: "Ethoss Admin", email, role: "admin" });
-      toast.success("Welcome back, Admin!");
-      router.replace("/admin");
-    } else {
-      toast.error("Invalid credentials");
+      if (res.ok && data.success) {
+        login(data.user);
+        toast.success("Welcome back, Admin!");
+        router.replace("/admin");
+      } else {
+        toast.error(data.message || "Invalid credentials");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      toast.error("Network error. Please check your connection.");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
