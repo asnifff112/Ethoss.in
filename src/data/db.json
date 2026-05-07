@@ -70,6 +70,36 @@
         "https://res.cloudinary.com/dwwktwox5/image/upload/v1777970612/ethoss-products/b6l5cgin9wu5uc0mfvfc.jpg"
       ],
       "is_sold_out": false
+    },
+    {
+      "id": "p-1778144973721",
+      "name": "Obsidian pulse",
+      "caption": "A bold beaded bracelet crafted with deep black tones and polished chrome accents.\nMinimal, stretchable, unisex and designed for a sleek everyday look.",
+      "original_price": 149,
+      "price": 99,
+      "delivery_charge": 39,
+      "category_id": "earthbound-soul",
+      "images": [
+        "https://res.cloudinary.com/dwwktwox5/image/upload/v1778144954/ethoss-products/stp9zmk2jdkokkeugmit.jpg",
+        "https://res.cloudinary.com/dwwktwox5/image/upload/v1778144963/ethoss-products/osk1vwcsc03usr6yfymi.jpg",
+        "https://res.cloudinary.com/dwwktwox5/image/upload/v1778144970/ethoss-products/vpgdthryx3snz8xbos3m.jpg"
+      ],
+      "is_sold_out": false
+    },
+    {
+      "id": "p-1778145137551",
+      "name": "Midnight bead",
+      "caption": "A sleek beaded bracelet crafted in a deep midnight blue tone.\nLightweight, stretchable, unisex and goes with everything .",
+      "original_price": 149,
+      "price": 99,
+      "delivery_charge": 39,
+      "category_id": "earthbound-soul",
+      "images": [
+        "https://res.cloudinary.com/dwwktwox5/image/upload/v1778145112/ethoss-products/s02qry6mnr0wzypyvxrw.jpg",
+        "https://res.cloudinary.com/dwwktwox5/image/upload/v1778145123/ethoss-products/afqhtchhtw1ahrdllzul.jpg",
+        "https://res.cloudinary.com/dwwktwox5/image/upload/v1778145132/ethoss-products/rkr7ba5tv7v2ikskqois.jpg"
+      ],
+      "is_sold_out": false
     }
   ],
   "feedbacks": []
