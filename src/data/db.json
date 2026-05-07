@@ -40,6 +40,36 @@
         "https://res.cloudinary.com/dwwktwox5/image/upload/v1777968739/ethoss-products/dasba9b77khicum6zzlv.jpg"
       ],
       "is_sold_out": false
+    },
+    {
+      "id": "p-1777970207285",
+      "name": "Crimson Flare Bead",
+      "caption": "A striking beaded bracelet designed in a bold crimson red and iridescent tone. Lightweight, stretchable, unisex and goes with everything.",
+      "original_price": 149,
+      "price": 99,
+      "delivery_charge": 39,
+      "category_id": "earthbound-soul",
+      "images": [
+        "https://res.cloudinary.com/dwwktwox5/image/upload/v1777970158/ethoss-products/yt6saacz4971jsvx9ijp.jpg",
+        "https://res.cloudinary.com/dwwktwox5/image/upload/v1777970182/ethoss-products/cryzxpz25tmq3czvhums.jpg",
+        "https://res.cloudinary.com/dwwktwox5/image/upload/v1777970194/ethoss-products/rmasrjnro3roa0c4xms5.jpg"
+      ],
+      "is_sold_out": false
+    },
+    {
+      "id": "p-1777970623974",
+      "name": "Lagoon bead",
+      "caption": "A fresh beaded bracelet designed in a calm lagoon blue and soft tone.\nLightweight, stretchable, unisex and goes with everything .",
+      "original_price": 149,
+      "price": 99,
+      "delivery_charge": 39,
+      "category_id": "earthbound-soul",
+      "images": [
+        "https://res.cloudinary.com/dwwktwox5/image/upload/v1777970592/ethoss-products/uuwflsa1n5iqbnpcznzv.jpg",
+        "https://res.cloudinary.com/dwwktwox5/image/upload/v1777970602/ethoss-products/rfxdzzj263fkngxruunb.jpg",
+        "https://res.cloudinary.com/dwwktwox5/image/upload/v1777970612/ethoss-products/b6l5cgin9wu5uc0mfvfc.jpg"
+      ],
+      "is_sold_out": false
     }
   ],
   "feedbacks": []
