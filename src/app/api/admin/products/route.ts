@@ -1,88 +1,101 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs/promises';
-import path from 'path';
-
-const DB_PATH = path.join(process.cwd(), 'src', 'data', 'db.json');
+import connectToDatabase from '@/lib/mongodb';
+import Product from '@/models/Product';
 
 export async function GET() {
   try {
-    const fileContent = await fs.readFile(DB_PATH, 'utf8');
-    const db = JSON.parse(fileContent);
-    return NextResponse.json(db.products || [], { status: 200 });
+    await connectToDatabase();
+    const products = await Product.find({}).sort({ createdAt: -1 });
+    return NextResponse.json(products, { status: 200 });
   } catch (error) {
+    console.error('[Products GET] Error:', error);
     return NextResponse.json({ message: 'Error loading products' }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
   try {
-    const product = await request.json();
-    const fileContent = await fs.readFile(DB_PATH, 'utf8');
-    const db = JSON.parse(fileContent);
-
-    const newProduct = {
-      id: `p-${Date.now()}`,
-      name: product.name || "",
-      caption: product.caption || "",
-      original_price: product.original_price || 0,
-      price: product.price || 0,
-      delivery_charge: product.delivery_charge || 0,
-      category_id: product.category_id || "",
-      images: product.images || [],
-      is_sold_out: product.is_sold_out ?? false,
-    };
-
-    db.products.push(newProduct);
-    await fs.writeFile(DB_PATH, JSON.stringify(db, null, 2));
+    await connectToDatabase();
+    const productData = await request.json();
+    
+    // Create new product using Mongoose
+    const newProduct = await Product.create({
+      name: productData.name || "",
+      caption: productData.caption || "",
+      original_price: productData.original_price || 0,
+      price: productData.price || 0,
+      delivery_charge: productData.delivery_charge || 0,
+      category_id: productData.category_id || "",
+      images: productData.images || [],
+      is_sold_out: productData.is_sold_out ?? false,
+    });
 
     return NextResponse.json(newProduct, { status: 201 });
   } catch (error) {
+    console.error('[Products POST] Error:', error);
     return NextResponse.json({ message: 'Error adding product' }, { status: 500 });
   }
 }
 
 export async function PUT(request: Request) {
   try {
-    const product = await request.json();
-    const fileContent = await fs.readFile(DB_PATH, 'utf8');
-    const db = JSON.parse(fileContent);
+    await connectToDatabase();
+    const productData = await request.json();
+    
+    // We expect the frontend to pass the mongodb _id as `id` or `_id`. 
+    // We'll check both just in case, but usually, id is used.
+    const idToUpdate = productData._id || productData.id;
 
-    const index = db.products.findIndex((p: any) => p.id === product.id);
-    if (index === -1) {
+    if (!idToUpdate) {
+      return NextResponse.json({ message: 'Product ID is required' }, { status: 400 });
+    }
+
+    const updatedProduct = await Product.findByIdAndUpdate(
+      idToUpdate,
+      {
+        $set: {
+          name: productData.name,
+          caption: productData.caption,
+          original_price: productData.original_price,
+          price: productData.price,
+          delivery_charge: productData.delivery_charge,
+          category_id: productData.category_id,
+          images: productData.images,
+          is_sold_out: productData.is_sold_out,
+        }
+      },
+      { new: true } // Return the updated document
+    );
+
+    if (!updatedProduct) {
       return NextResponse.json({ message: 'Product not found' }, { status: 404 });
     }
 
-    db.products[index] = {
-      ...db.products[index],
-      name: product.name ?? db.products[index].name,
-      caption: product.caption ?? db.products[index].caption,
-      original_price: product.original_price ?? db.products[index].original_price,
-      price: product.price ?? db.products[index].price,
-      delivery_charge: product.delivery_charge ?? db.products[index].delivery_charge,
-      category_id: product.category_id ?? db.products[index].category_id,
-      images: product.images ?? db.products[index].images,
-      is_sold_out: product.is_sold_out ?? db.products[index].is_sold_out,
-    };
-
-    await fs.writeFile(DB_PATH, JSON.stringify(db, null, 2));
-
-    return NextResponse.json(db.products[index], { status: 200 });
+    return NextResponse.json(updatedProduct, { status: 200 });
   } catch (error) {
+    console.error('[Products PUT] Error:', error);
     return NextResponse.json({ message: 'Error updating product' }, { status: 500 });
   }
 }
 
 export async function DELETE(request: Request) {
   try {
+    await connectToDatabase();
     const { id } = await request.json();
-    const fileContent = await fs.readFile(DB_PATH, 'utf8');
-    const db = JSON.parse(fileContent);
 
-    db.products = db.products.filter((p: any) => p.id !== id);
-    await fs.writeFile(DB_PATH, JSON.stringify(db, null, 2));
+    if (!id) {
+      return NextResponse.json({ message: 'Product ID is required' }, { status: 400 });
+    }
 
-    return NextResponse.json({ message: 'Product deleted' }, { status: 200 });
+    const deletedProduct = await Product.findByIdAndDelete(id);
+
+    if (!deletedProduct) {
+      return NextResponse.json({ message: 'Product not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ message: 'Product deleted successfully' }, { status: 200 });
   } catch (error) {
+    console.error('[Products DELETE] Error:', error);
     return NextResponse.json({ message: 'Error deleting product' }, { status: 500 });
   }
 }

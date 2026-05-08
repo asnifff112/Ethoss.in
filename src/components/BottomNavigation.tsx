@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Shirt, MessageCircle } from "lucide-react";
+import { Home, Shirt, Info } from "lucide-react";
 // ============================================================
 // SHOWCASE MODE — Cart and Profile icons hidden.
 // Restore when backend is ready:
@@ -19,7 +19,7 @@ export function BottomNavigation() {
   const navItems = [
     { label: "Home", href: "/", icon: Home },
     { label: "Products", href: "/shop", icon: Shirt },
-    { label: "Feedback", href: "/feedback", icon: MessageCircle },
+    { label: "About", href: "/about", icon: Info },
     // ============================================================
     // SHOWCASE MODE — Disabled nav items. Restore when backend ready:
     // { label: "Cart", href: "/cart", icon: ShoppingCart },
