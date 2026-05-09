@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { ArrowRight, MoveRight } from "lucide-react";
+import { ArrowRight, MoveRight, Star } from "lucide-react";
 import db from "@/data/db.json";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -14,6 +14,8 @@ ScrollTrigger.config({ limitCallbacks: true });
 export default function HomePage() {
   const heroRef = useRef<HTMLDivElement>(null);
   const storyRef = useRef<HTMLDivElement>(null);
+  const feedbackRef = useRef<HTMLDivElement>(null);
+  const [feedbacks, setFeedbacks] = useState<any[]>([]);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -83,6 +85,44 @@ export default function HomePage() {
       window.removeEventListener("orientationchange", handleResize);
     };
   }, []);
+
+  // Fetch feedbacks from MongoDB
+  useEffect(() => {
+    async function loadFeedbacks() {
+      try {
+        const res = await fetch("/api/admin/feedback");
+        if (res.ok) {
+          const data = await res.json();
+          setFeedbacks(data.filter((f: any) => !f.status || f.status === "approved").slice(0, 6));
+        }
+      } catch { /* silent fail */ }
+    }
+    loadFeedbacks();
+  }, []);
+
+  // GSAP scroll animation for testimonials
+  useEffect(() => {
+    if (feedbacks.length === 0 || !feedbackRef.current) return;
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        ".feedback-card",
+        { y: 40, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.7,
+          stagger: 0.12,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: feedbackRef.current,
+            start: "top 85%",
+            once: true,
+          },
+        }
+      );
+    });
+    return () => ctx.revert();
+  }, [feedbacks]);
 
   return (
     <>
@@ -196,6 +236,65 @@ export default function HomePage() {
           </Link>
         </div>
       </section>
+
+      {/* ─── SECTION 4 : TESTIMONIALS ─── */}
+      {feedbacks.length > 0 && (
+        <section className="py-20 sm:py-28 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+          <div className="text-center mb-14">
+            <p className="text-[10px] tracking-[0.35em] uppercase text-primary/40 mb-3">
+              What People Say
+            </p>
+            <h2 className="text-2xl sm:text-3xl font-serif text-primary uppercase tracking-wider mb-4">
+              Customer Voices
+            </h2>
+            <p className="text-sm text-primary/50 max-w-md mx-auto leading-relaxed">
+              Real feedback from our community. Every voice shapes what we create next.
+            </p>
+          </div>
+
+          <div ref={feedbackRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {feedbacks.map((fb: any) => (
+              <div
+                key={fb.id}
+                className="feedback-card p-6 sm:p-8 bg-white border border-primary/5 rounded-2xl flex flex-col justify-between"
+              >
+                <div>
+                  {/* Star Rating */}
+                  <div className="flex items-center gap-0.5 mb-4">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <Star
+                        key={s}
+                        size={12}
+                        strokeWidth={1.5}
+                        className={s <= fb.rating ? "text-amber-500 fill-amber-500" : "text-primary/10"}
+                      />
+                    ))}
+                  </div>
+                  {/* Comment */}
+                  <p className="text-[13px] text-primary/65 leading-relaxed tracking-wide italic">
+                    &ldquo;{fb.comment}&rdquo;
+                  </p>
+                </div>
+                {/* Author */}
+                <div className="mt-6 pt-4 border-t border-primary/5">
+                  <p className="text-[11px] font-bold text-primary uppercase tracking-wider">
+                    {fb.userName}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-center mt-12">
+            <Link
+              href="/feedback"
+              className="inline-flex items-center gap-2 text-sm tracking-widest uppercase text-primary border-b border-primary/30 pb-1 hover:border-primary transition-colors"
+            >
+              Leave Your Review <ArrowRight size={14} />
+            </Link>
+          </div>
+        </section>
+      )}
     </>
   );
 }

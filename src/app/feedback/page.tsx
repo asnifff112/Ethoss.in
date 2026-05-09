@@ -89,7 +89,7 @@ function FeedbackModal({ onClose }: { onClose: () => void }) {
     >
       {/* Panel */}
       <div
-        className="relative bg-[#faf5ec] w-full sm:max-w-lg sm:rounded-[4px] max-h-[85svh] flex flex-col shadow-2xl"
+        className="relative bg-white w-full sm:max-w-lg sm:rounded-[4px] max-h-[85svh] flex flex-col shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -267,7 +267,7 @@ export default function FeedbackPage() {
   }
 
   return (
-    <div className="min-h-[100svh] bg-[#faf5ec] py-16 px-4">
+    <div className="min-h-[100svh] bg-white py-16 px-4">
       <div className="max-w-xl mx-auto">
 
         {/* Header */}
@@ -377,7 +377,7 @@ export default function FeedbackPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-5 bg-primary text-[#faf5ec] text-[11px] tracking-[0.2em] uppercase font-bold flex items-center justify-center gap-3 hover:bg-primary/90 transition-all duration-300 rounded-[2px] active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed mt-4"
+            className="w-full py-5 bg-primary text-white text-[11px] tracking-[0.2em] uppercase font-bold flex items-center justify-center gap-3 hover:bg-primary/90 transition-all duration-300 rounded-[2px] active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed mt-4"
           >
             {submitting ? (
               <span className="animate-pulse">Sending...</span>
