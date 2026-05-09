@@ -6,6 +6,8 @@ import AuthGuard from "@/components/AuthGuard";
 import { BottomNavigation } from "@/components/BottomNavigation";
 import { Toaster } from "sonner";
 
+import Providers from "@/components/Providers";
+
 export const metadata: Metadata = {
   title: "ETHOSS.IN | Handcrafted Minimalist Jewellery",
   description: "100% Handcrafted jewellery from Kerala. Minimalist. Sustainable. Built to last.",
@@ -25,36 +27,38 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <body className="antialiased bg-background text-primary overflow-x-hidden selection:bg-primary/10">
-        {/* Navbar */}
-        <Navbar />
+        <Providers>
+          {/* Navbar */}
+          <Navbar />
 
-        {/* Global role-based route guard */}
-        <AuthGuard>
-          <main className="relative min-h-[100svh] w-full flex flex-col">
-            {children}
-          </main>
-        </AuthGuard>
+          {/* Global role-based route guard */}
+          <AuthGuard>
+            <main className="relative min-h-[100svh] w-full flex flex-col">
+              {children}
+            </main>
+          </AuthGuard>
 
-        {/* Footer — hidden on admin routes */}
-        <Footer />
+          {/* Footer — hidden on admin routes */}
+          <Footer />
 
-        {/* Bottom Navigation — mobile only, non-admin routes */}
-        <BottomNavigation />
+          {/* Bottom Navigation — mobile only, non-admin routes */}
+          <BottomNavigation />
 
-        {/* Mobile-friendly Toaster */}
-        <Toaster 
-          position="bottom-center" 
-          toastOptions={{
-            style: {
-              background: 'var(--background)',
-              color: 'var(--primary)',
-              border: '1px solid rgba(var(--primary-rgb), 0.1)',
-              fontSize: '12px',
-              textTransform: 'uppercase',
-              letterSpacing: '0.1em'
-            },
-          }}
-        />
+          {/* Mobile-friendly Toaster */}
+          <Toaster 
+            position="bottom-center" 
+            toastOptions={{
+              style: {
+                background: 'var(--background)',
+                color: 'var(--primary)',
+                border: '1px solid rgba(var(--primary-rgb), 0.1)',
+                fontSize: '12px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em'
+              },
+            }}
+          />
+        </Providers>
       </body>
     </html>
   );

@@ -3,27 +3,88 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { SlidersHorizontal, X } from "lucide-react";
-import db from "@/data/db.json";
+import { SlidersHorizontal, X, Heart } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useSession } from "next-auth/react";
+import { toast } from "sonner";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const ALL_PRODUCTS = db.products;
-const CATEGORIES = ["all", ...db.categories.map((c) => c.id)];
-
 export default function ShopPage() {
+  const [products, setProducts] = useState<any[]>([]);
+  const [categories, setCategories] = useState<string[]>(["all"]);
+  const [wishlist, setWishlist] = useState<string[]>([]);
+  
   const [category, setCategory] = useState("all");
   const [sortOrder, setSortOrder] = useState("default");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const filterPanelRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { data: session } = useSession();
+
+  // Fetch products and wishlist
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const res = await fetch("/api/products");
+        const data = await res.json();
+        setProducts(data);
+        
+        // Extract unique categories
+        const uniqueCats = Array.from(new Set(data.map((p: any) => p.category_id)));
+        setCategories(["all", ...uniqueCats as string[]]);
+
+        if (session) {
+          const wlRes = await fetch("/api/user/wishlist");
+          if (wlRes.ok) {
+            const wlData = await wlRes.json();
+            setWishlist(wlData.map((p: any) => p._id || p));
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load shop data", error);
+      }
+    };
+    loadData();
+  }, [session]);
+
+  const toggleWishlist = async (e: React.MouseEvent, productId: string) => {
+    e.preventDefault();
+    if (!session) {
+      toast.error("Please login to save to wishlist");
+      return;
+    }
+
+    // Optimistic update
+    setWishlist(prev => 
+      prev.includes(productId) 
+        ? prev.filter(id => id !== productId)
+        : [...prev, productId]
+    );
+
+    try {
+      const res = await fetch("/api/user/wishlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId })
+      });
+      if (!res.ok) throw new Error("Failed to update wishlist");
+    } catch (error) {
+      toast.error("Failed to update wishlist");
+      // Revert on error
+      setWishlist(prev => 
+        prev.includes(productId) 
+          ? prev.filter(id => id !== productId)
+          : [...prev, productId]
+      );
+    }
+  };
 
   let filtered =
     category === "all"
-      ? [...ALL_PRODUCTS]
-      : ALL_PRODUCTS.filter((p) => p.category_id === category);
+      ? [...products]
+      : products.filter((p) => p.category_id === category);
 
   if (sortOrder === "price-asc") {
     filtered.sort((a, b) => a.price - b.price);
@@ -44,6 +105,7 @@ export default function ShopPage() {
 
   // Entrance Animations
   useEffect(() => {
+    if (filtered.length === 0) return;
     let ctx = gsap.context(() => {
       gsap.fromTo(
         ".product-card",
@@ -83,8 +145,8 @@ export default function ShopPage() {
         <div className="flex items-center justify-between gap-6 mb-10">
           <div className="flex items-center gap-3 overflow-x-auto hide-scrollbar pb-2 px-4 sm:mx-0 sm:px-0">
             <SlidersHorizontal size={14} className="text-primary/40 flex-shrink-0" />
-            {CATEGORIES.map((catId) => {
-              const catName = catId === "all" ? "All" : db.categories.find(c => c.id === catId)?.title;
+            {categories.map((catId) => {
+              const catName = catId === "all" ? "All" : catId;
               return (
                 <button
                   key={catId}
@@ -139,11 +201,12 @@ export default function ShopPage() {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-[2px] md:gap-8 px-[1px] md:px-0 mt-[2px] md:mt-0">
         {filtered.map((p) => {
           const isSoldOut = p.is_sold_out;
+          const isWishlisted = wishlist.includes(p._id);
 
           return (
             <Link
-              key={p.id}
-              href={`/product/${p.id}`}
+              key={p._id}
+              href={`/product/${p._id}`}
               className="product-card group flex flex-col mb-4 md:mb-0 relative"
             >
               <div className="w-full aspect-[3/4] overflow-hidden bg-[#F1F1F1] relative">
@@ -155,6 +218,17 @@ export default function ShopPage() {
                   className={`object-cover transition-transform duration-700 md:group-hover:scale-105 ${isSoldOut ? "brightness-50" : ""}`}
                 />
                 
+                {/* Wishlist Button */}
+                <button
+                  onClick={(e) => toggleWishlist(e, p._id)}
+                  className="absolute top-3 right-3 p-2 bg-white/50 backdrop-blur-md rounded-full shadow-sm hover:bg-white transition-colors z-20"
+                >
+                  <Heart 
+                    size={16} 
+                    className={isWishlisted ? "fill-red-500 text-red-500" : "text-primary/70"} 
+                  />
+                </button>
+
                 {/* SOLD OUT Overlay */}
                 {isSoldOut && (
                   <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-10">
@@ -203,8 +277,8 @@ export default function ShopPage() {
           <div>
             <h4 className="text-[10px] tracking-[0.2em] uppercase text-primary/40 mb-4">Categories</h4>
             <div className="flex flex-col items-start gap-4">
-              {CATEGORIES.map((catId) => {
-                const catName = catId === "all" ? "All Collections" : db.categories.find(c => c.id === catId)?.title;
+              {categories.map((catId) => {
+                const catName = catId === "all" ? "All Collections" : catId;
                 const isActive = category === catId;
                 return (
                   <button

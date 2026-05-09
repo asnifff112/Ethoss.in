@@ -1,23 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Package, LogOut, Sparkles, MessageSquare } from "lucide-react";
-import { useAuthStore } from "@/store/authStore";
+import { usePathname } from "next/navigation";
+import { LayoutDashboard, Package, LogOut, Sparkles, MessageSquare, Users } from "lucide-react";
+import { signOut } from "next-auth/react";
 
 export function AdminSidebar() {
   const pathname = usePathname();
-  const router = useRouter();
-  const logout = useAuthStore((s) => s.logout);
 
   const handleLogout = () => {
-    logout();
-    router.push("/admin/login");
+    signOut({ callbackUrl: "/" });
   };
 
   const navItems = [
     { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
     { label: "Products", href: "/admin/products", icon: Package },
+    { label: "Users", href: "/admin/users", icon: Users },
     { label: "Studio", href: "/admin/studio", icon: Sparkles },
     { label: "Feedback", href: "/admin/feedback", icon: MessageSquare },
   ];

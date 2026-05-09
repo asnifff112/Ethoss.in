@@ -1,17 +1,48 @@
 "use client";
 
-import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { useState, useEffect, useRef } from "react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
+import gsap from "gsap";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
+  
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Unified Role-Based Redirect Logic
+  useEffect(() => {
+    if (status === "authenticated") {
+      const role = (session?.user as any)?.role;
+      if (role === "ADMIN") {
+        router.push("/admin/users");
+      } else {
+        router.push("/profile");
+      }
+    }
+  }, [status, session, router]);
+
+  // Premium GSAP Entrance Animation
+  useEffect(() => {
+    if (status !== "loading" && status !== "authenticated") {
+      const ctx = gsap.context(() => {
+        gsap.fromTo(
+          ".anim-item",
+          { opacity: 0, y: 30 },
+          { opacity: 1, y: 0, duration: 0.8, stagger: 0.15, ease: "power3.out" }
+        );
+      }, containerRef);
+      return () => ctx.revert();
+    }
+  }, [status]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,35 +56,47 @@ export default function LoginPage() {
     });
 
     if (res?.error) {
-      setError("Invalid email or password.");
+      setError(res.error);
       setLoading(false);
     } else {
-      router.push("/");
+      // Session triggers the redirect in useEffect
       router.refresh();
     }
   };
 
+  if (status === "loading" || status === "authenticated") {
+    return (
+      <div className="min-h-[100svh] bg-white flex items-center justify-center text-[#1e3a8a]">
+        <Loader2 className="animate-spin" size={32} />
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-[80vh] flex flex-col items-center justify-center px-6">
-      <div className="w-full max-w-md space-y-12 text-center">
-        <div>
-          <p className="text-[10px] tracking-[0.4em] uppercase text-primary/40 mb-4">
+    <div className="min-h-[100svh] flex flex-col items-center justify-center px-6 bg-white text-[#1e3a8a]">
+      <div ref={containerRef} className="w-full max-w-md space-y-10">
+        
+        {/* Header Section */}
+        <div className="text-center anim-item">
+          <p className="text-[10px] tracking-[0.3em] uppercase text-[#1e3a8a]/50 mb-3 font-medium">
             Welcome Back
           </p>
-          <h1 className="text-4xl font-serif text-primary uppercase leading-tight">
-            Login
+          <h1 className="text-3xl font-serif text-[#1e3a8a] leading-tight">
+            Login to Ethoss
           </h1>
         </div>
 
+        {/* Error Message */}
         {error && (
-          <p className="text-sm text-red-500 tracking-wider uppercase">
+          <div className="anim-item bg-red-50 text-red-500 text-xs p-4 rounded-2xl tracking-wide text-center">
             {error}
-          </p>
+          </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-8 text-left">
-          <div className="space-y-2">
-            <label className="text-[10px] tracking-widest uppercase text-primary/60">
+        {/* Form Section */}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-2 anim-item">
+            <label className="text-[11px] tracking-wide font-medium text-[#1e3a8a]/70 pl-1">
               Email Address
             </label>
             <input
@@ -61,13 +104,13 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full bg-transparent border-b border-primary/20 pb-2 text-primary focus:outline-none focus:border-primary transition-colors"
-              placeholder="Enter your email"
+              className="w-full bg-[#1e3a8a]/[0.03] border border-[#1e3a8a]/10 rounded-2xl px-5 py-4 text-sm text-[#1e3a8a] focus:outline-none focus:border-[#1e3a8a]/40 focus:bg-white transition-all placeholder:text-[#1e3a8a]/30"
+              placeholder="name@example.com"
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="text-[10px] tracking-widest uppercase text-primary/60">
+          <div className="space-y-2 anim-item">
+            <label className="text-[11px] tracking-wide font-medium text-[#1e3a8a]/70 pl-1">
               Password
             </label>
             <input
@@ -75,7 +118,7 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full bg-transparent border-b border-primary/20 pb-2 text-primary focus:outline-none focus:border-primary transition-colors"
+              className="w-full bg-[#1e3a8a]/[0.03] border border-[#1e3a8a]/10 rounded-2xl px-5 py-4 text-sm text-[#1e3a8a] focus:outline-none focus:border-[#1e3a8a]/40 focus:bg-white transition-all placeholder:text-[#1e3a8a]/30"
               placeholder="Enter your password"
             />
           </div>
@@ -83,21 +126,22 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 py-4 bg-primary text-background uppercase tracking-widest text-sm hover:bg-primary/90 transition-colors disabled:opacity-50"
+            className="anim-item w-full flex items-center justify-center gap-3 py-4 mt-8 bg-[#1e3a8a] text-white tracking-widest text-[11px] font-medium rounded-3xl hover:bg-[#1e3a8a]/90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl active:scale-[0.98]"
           >
-            {loading ? "Signing in..." : "Sign In"}
-            {!loading && <ArrowRight size={16} />}
+            {loading ? "Authenticating..." : "Sign In"}
+            {!loading && <ArrowRight size={16} strokeWidth={1.5} />}
           </button>
         </form>
 
-        <div className="pt-8 border-t border-primary/10">
-          <p className="text-sm text-primary/60">
+        {/* Footer Section */}
+        <div className="anim-item pt-8 text-center">
+          <p className="text-[11px] text-[#1e3a8a]/60 tracking-wide font-medium">
             Don't have an account?{" "}
             <Link
               href="/signup"
-              className="text-primary tracking-widest uppercase border-b border-primary/30 hover:border-primary transition-colors pb-1"
+              className="text-[#1e3a8a] hover:text-[#1e3a8a]/70 transition-colors ml-1 font-semibold"
             >
-              Sign Up
+              Sign up
             </Link>
           </p>
         </div>

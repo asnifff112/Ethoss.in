@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { AdminSidebar } from "@/components/AdminSidebar";
-import { useAuthStore } from "@/store/authStore";
+import { useSession } from "next-auth/react";
 import { Loader2 } from "lucide-react";
 
 export default function AdminLayout({
@@ -11,26 +11,22 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const user = useAuthStore((s) => s.user);
-  const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
-  const hasHydrated = useAuthStore((s) => s._hasHydrated);
+  const { data: session, status } = useSession();
   const router = useRouter();
   const pathname = usePathname();
 
-  // The login page lives inside /admin but should NOT be protected
-  const isLoginPage = pathname === "/admin/login";
-
   useEffect(() => {
-    if (!hasHydrated) return;
-    if (isLoginPage) return; // never redirect away from login page
+    if (status === "loading") return;
 
-    if (!isLoggedIn || user?.role !== "admin") {
-      router.replace("/admin/login");
+    const role = (session?.user as any)?.role;
+    if (status === "unauthenticated" || role !== "ADMIN") {
+      router.replace("/login");
     }
-  }, [hasHydrated, isLoggedIn, user, router, isLoginPage, pathname]);
+  }, [status, session, router]);
 
   // ── Phase 1: Spinner while localStorage is being read ──
-  if (!hasHydrated) {
+  // ── Phase 1: Spinner while session is loading ──
+  if (status === "loading") {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
@@ -43,13 +39,9 @@ export default function AdminLayout({
     );
   }
 
-  // ── Login page: render without sidebar/protection ──
-  if (isLoginPage) {
-    return <>{children}</>;
-  }
-
   // ── Phase 2: Not authenticated — show redirect screen ──
-  if (!isLoggedIn || user?.role !== "admin") {
+  const role = (session?.user as any)?.role;
+  if (status === "unauthenticated" || role !== "ADMIN") {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center">
         <div className="w-16 h-16 rounded-full bg-primary/5 border border-primary/10 flex items-center justify-center mb-6">
@@ -59,7 +51,7 @@ export default function AdminLayout({
           Access Denied
         </h1>
         <p className="text-primary/50 text-xs uppercase tracking-widest">
-          Redirecting...
+          Redirecting to Login...
         </p>
       </div>
     );

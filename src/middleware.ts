@@ -1,33 +1,9 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-// ============================================================
-// WHATSAPP CHECKOUT MODE — User accounts are removed.
-// Only /login (admin) and /admin/* are gated routes.
-// All old user-specific routes redirect to home.
-// ============================================================
-
-const DISABLED_ROUTES = [
-  "/login",
-  "/register",
-  "/cart",
-  "/checkout",
-  "/profile",
-];
-
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-
-  // Redirect all deprecated user routes to home
-  const isDisabled = DISABLED_ROUTES.some(
-    (route) => pathname === route || pathname.startsWith(route + "/")
-  );
-
-  if (isDisabled) {
-    const homeUrl = new URL("/", request.url);
-    return NextResponse.redirect(homeUrl);
-  }
-
+  // Allow all routes by default, including /login, /profile, /cart.
+  // NextAuth will handle authentication within the specific pages if needed.
   return NextResponse.next();
 }
 

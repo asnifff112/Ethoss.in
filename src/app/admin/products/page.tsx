@@ -4,9 +4,11 @@ import { useState, useEffect, useRef } from "react";
 import { Plus, Edit2, Trash2, Loader2, X, Upload, IndianRupee, Truck, Tag, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
+import gsap from "gsap";
 
 interface Product {
-  id: string;
+  _id: string;
+  id?: string;
   name: string;
   caption: string;
   original_price: number;
@@ -45,9 +47,22 @@ export default function AdminProductsPage() {
 
   const fileInputRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
 
+  const tableRef = useRef<HTMLTableSectionElement>(null);
+
   useEffect(() => {
     fetchProducts();
   }, []);
+
+  useEffect(() => {
+    if (!loading && products.length > 0 && tableRef.current) {
+      const rows = tableRef.current.querySelectorAll("tr");
+      gsap.fromTo(
+        rows,
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.8, stagger: 0.1, ease: "power3.out" }
+      );
+    }
+  }, [loading, products]);
 
   const fetchProducts = async () => {
     try {
@@ -253,7 +268,7 @@ export default function AdminProductsPage() {
                 <th className="p-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody ref={tableRef}>
               {products.map((p) => {
                 const statusStyle = p.is_sold_out
                   ? "bg-red-50 text-red-600 border-red-100 animate-status-blink"
@@ -261,7 +276,7 @@ export default function AdminProductsPage() {
                 const statusLabel = p.is_sold_out ? "Sold Out" : "In Stock";
 
                 return (
-                  <tr key={p.id} className="border-b border-primary/5 hover:bg-primary/[0.03] transition-colors group">
+                  <tr key={p._id || p.id} className="border-b border-primary/5 hover:bg-primary/[0.03] transition-colors group">
                     <td className="p-4">
                       <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-primary/10">
                         {p.images?.[0] && (
@@ -307,7 +322,7 @@ export default function AdminProductsPage() {
                           <Edit2 size={16} />
                         </button>
                         <button
-                          onClick={() => handleDelete(p.id)}
+                          onClick={() => handleDelete(p._id || p.id as string)}
                           className="p-2 text-primary/40 hover:text-red-600 transition-colors hover:bg-red-50 rounded-full"
                         >
                           <Trash2 size={16} />

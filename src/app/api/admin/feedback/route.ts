@@ -6,8 +6,20 @@ export async function GET() {
   try {
     await connectToDatabase();
     // Sort by createdAt descending
-    const feedbacks = await Feedback.find({}).sort({ createdAt: -1 });
-    return NextResponse.json(feedbacks, { status: 200 });
+    const feedbacks = await Feedback.find({}).sort({ createdAt: -1 }).lean();
+    
+    // Map Mongoose schema (name, email, message) to frontend expectations (userName, userEmail, comment)
+    const formattedFeedbacks = feedbacks.map((f: any) => ({
+      id: f._id.toString(),
+      userName: f.name,
+      userEmail: f.email,
+      comment: f.message,
+      rating: f.rating,
+      status: f.status,
+      createdAt: f.createdAt,
+    }));
+
+    return NextResponse.json(formattedFeedbacks, { status: 200 });
   } catch (error) {
     console.error('[Feedback GET] Error:', error);
     return NextResponse.json({ message: 'Error loading feedback data' }, { status: 500 });
@@ -21,10 +33,12 @@ export async function POST(request: Request) {
 
     await connectToDatabase();
 
+    // Map the incoming payload to the strict Mongoose schema
     const newFeedback = await Feedback.create({
-      name: feedbackData.name,
-      email: feedbackData.email,
-      message: feedbackData.message,
+      name: feedbackData.userName || feedbackData.name || feedbackData.Name || "Anonymous",
+      email: feedbackData.userEmail || feedbackData.email || feedbackData.Email || "no-email@provided.com",
+      message: feedbackData.comment || feedbackData.message || feedbackData.Message || "",
+      rating: feedbackData.rating || 5,
       status: feedbackData.status || 'approved',
     });
 
@@ -32,7 +46,7 @@ export async function POST(request: Request) {
   } catch (error: any) {
     console.error("MongoDB Feedback Error:", error);
     return NextResponse.json(
-      { error: "Failed to save feedback", details: error.message || "Unknown error" },
+      { message: error.message || "Unknown Server Error", error: error.toString() },
       { status: 500 }
     );
   }
