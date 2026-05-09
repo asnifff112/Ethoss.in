@@ -180,8 +180,8 @@ export default function HomePage() {
 
       {/* ─── SECTION 2 : CATEGORIES ─── */}
       <section id="collections" className="py-20 sm:py-28 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="mb-12">
-          <p className="text-[10px] tracking-[0.3em] uppercase text-primary/40 mb-2">
+        <div className="mb-14 text-center">
+          <p className="text-[10px] tracking-[0.35em] uppercase text-primary/40 mb-3">
             The Collections
           </p>
           <h2 className="text-2xl sm:text-3xl font-serif text-primary uppercase tracking-wider">
@@ -189,48 +189,42 @@ export default function HomePage() {
           </h2>
         </div>
 
-        <div className="space-y-12 sm:space-y-20">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {db.categories.map((category, idx) => (
-            <Link
+            <div
               key={category.id}
-              href={(category as any).link || `/category/${category.id}`}
               ref={(el) => { categoryRefs.current[idx] = el; }}
-              className={`flex flex-col gap-6 sm:gap-12 items-center group/card transition-all duration-500 ${
-                idx % 2 !== 0 ? "sm:flex-row-reverse" : "sm:flex-row"
-              }`}
+              className="group flex flex-col"
             >
-              {/* Category Image */}
-              <div
-                className="w-full sm:w-1/2 min-h-[50vh] sm:min-h-[70vh] relative group overflow-hidden bg-background rounded-xl block p-8 sm:p-12"
-              >
+              {/* Image Container */}
+              <div className="w-full overflow-hidden rounded-xl bg-gray-50 border border-primary/5">
                 <Image
                   src={category.image_url}
                   alt={category.title}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  className="object-contain p-4 group-hover:scale-105 transition-transform duration-1000 ease-out"
+                  width={500}
+                  height={500}
+                  sizes="(max-width: 768px) 50vw, 25vw"
+                  className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                 />
               </div>
 
-              {/* Category Info */}
-              <div className="w-full sm:w-1/2 flex flex-col justify-center sm:px-10">
-                <h3 className="text-3xl sm:text-5xl font-serif text-primary uppercase mb-4 sm:mb-6">
+              {/* Info */}
+              <div className="mt-4 sm:mt-5 flex flex-col flex-1">
+                <h3 className="text-sm sm:text-lg font-serif text-primary uppercase tracking-wider leading-tight">
                   {category.title}
                 </h3>
-                <p className="text-primary/60 text-sm sm:text-base leading-relaxed tracking-wide mb-8 max-w-md">
+                <p className="text-[11px] sm:text-[13px] text-primary/50 leading-relaxed tracking-wide mt-2 flex-1">
                   {category.description}
                 </p>
-                <div
-                  className="inline-flex items-center gap-3 text-sm tracking-widest uppercase text-primary border-b border-primary/30 pb-2 group-hover/card:border-primary transition-colors w-fit group"
+                <Link
+                  href={(category as any).link || `/category/${category.id}`}
+                  className="mt-4 sm:mt-5 inline-flex items-center justify-center gap-2 w-full py-3 sm:py-3.5 border border-primary/20 rounded-lg text-[9px] sm:text-[10px] tracking-[0.15em] uppercase font-bold text-primary hover:bg-primary hover:text-white transition-all duration-300"
                 >
-                  Discover Collection{" "}
-                  <ArrowRight
-                    size={16}
-                    className="group-hover:translate-x-1 transition-transform"
-                  />
-                </div>
+                  Discover Collection
+                  <ArrowRight size={12} className="group-hover:translate-x-0.5 transition-transform" />
+                </Link>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
       </section>

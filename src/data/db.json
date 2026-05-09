@@ -1,25 +1,32 @@
 {
   "categories": [
     {
-      "id": "intricate-weaves",
-      "title": "Intricate Weaves",
-      "description": "Strength in every strand. A testament to the patient art of slow-handcrafting.",
-      "image_url": "/intricate-weaves.png",
+      "id": "knot-theory",
+      "title": "The Knot Theory",
+      "description": "Where precision meets patience — each knot tied by hand, built to stay.",
+      "image_url": "/catsection/img1.jpeg",
+      "link": "/shop?category=beads"
+    },
+    {
+      "id": "volcanic-soul",
+      "title": "Volcanic Soul",
+      "description": "Born from fire, worn with intent — raw energy woven into every strand.",
+      "image_url": "/catsection/img2.jpeg",
       "link": "/shop?category=beads"
     },
     {
       "id": "onyx-essence",
       "title": "The Onyx Essence",
-      "description": "Pure. Polished. Timeless. A minimalist staple designed for those who find beauty in simplicity.",
-      "image_url": "/onyx-essence.png",
+      "description": "Pure obsidian elegance — a quiet statement that speaks volumes.",
+      "image_url": "/catsection/img3.jpeg",
       "link": "/shop?category=beads"
     },
     {
-      "id": "earthbound-soul",
-      "title": "Earthbound Soul",
-      "description": "Raw textures meet refined craftsmanship. Each bead tells a story of the earth's natural artistry.",
-      "image_url": "/earthbound-soul.png",
-      "link": "/shop?category=clothing"
+      "id": "duo-essence",
+      "title": "Duo Essence",
+      "description": "Two souls, one rhythm — handcrafted pairs designed to be worn together.",
+      "image_url": "/catsection/img4.jpeg",
+      "link": "/shop?category=beads"
     }
   ],
   "products": [
