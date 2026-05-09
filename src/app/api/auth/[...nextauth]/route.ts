@@ -20,7 +20,13 @@ export const authOptions: NextAuthOptions = {
         }
 
         console.log(`[NEXTAUTH] Attempting login for email: ${credentials.email}`);
-        await connectToDatabase();
+        
+        try {
+          await connectToDatabase();
+        } catch (dbError: any) {
+          console.error(`[NEXTAUTH] Database connection failed:`, dbError.message);
+          throw new Error("Database connection failed. Please try again later.");
+        }
 
         let user = await User.findOne({ email: credentials.email });
 
@@ -116,6 +122,8 @@ export const authOptions: NextAuthOptions = {
     signIn: "/login",
   },
   secret: process.env.NEXTAUTH_SECRET,
+  // trustHost allows NextAuth to work on Vercel without NEXTAUTH_URL
+  trustHost: true,
 };
 
 const handler = NextAuth(authOptions);

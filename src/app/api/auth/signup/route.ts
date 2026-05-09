@@ -22,8 +22,16 @@ export async function POST(request: Request) {
       );
     }
 
-    await connectToDatabase();
-    console.log("[SIGNUP] MongoDB connected.");
+    try {
+      await connectToDatabase();
+      console.log("[SIGNUP] MongoDB connected.");
+    } catch (dbError: any) {
+      console.error("[SIGNUP] MongoDB connection FAILED:", dbError.message);
+      return NextResponse.json(
+        { message: "Database connection failed. Please try again later." },
+        { status: 503 }
+      );
+    }
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
