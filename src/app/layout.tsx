@@ -49,12 +49,15 @@ export default function RootLayout({
             position="bottom-center" 
             toastOptions={{
               style: {
-                background: 'var(--background)',
-                color: 'var(--primary)',
-                border: '1px solid rgba(var(--primary-rgb), 0.1)',
-                fontSize: '12px',
-                textTransform: 'uppercase',
-                letterSpacing: '0.1em'
+                background: '#1e3a8a',
+                color: '#ffffff',
+                border: 'none',
+                fontSize: '11px',
+                textTransform: 'uppercase' as const,
+                letterSpacing: '0.1em',
+                borderRadius: '16px',
+                padding: '14px 20px',
+                boxShadow: '0 8px 30px rgba(30, 58, 138, 0.25)',
               },
             }}
           />

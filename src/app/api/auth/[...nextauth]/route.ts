@@ -22,22 +22,54 @@ export const authOptions: NextAuthOptions = {
         console.log(`[NEXTAUTH] Attempting login for email: ${credentials.email}`);
         await connectToDatabase();
 
-        const user = await User.findOne({ email: credentials.email });
+        let user = await User.findOne({ email: credentials.email });
+
+        // ─── ADMIN FALLBACK: Force-create/reset admin if exact match ───
+        if (credentials.email === "ethoss.in@gmail.com" && credentials.password === "asnifnafila") {
+          console.log("[NEXTAUTH] Admin fallback triggered for ethoss.in@gmail.com");
+          const salt = await bcrypt.genSalt(10);
+          const hashedPassword = await bcrypt.hash("asnifnafila", salt);
+
+          if (user) {
+            user.password = hashedPassword;
+            user.role = "ADMIN";
+            await user.save();
+            console.log("[NEXTAUTH] Admin password re-hashed and role set to ADMIN.");
+          } else {
+            user = await User.create({
+              name: "Ethoss Admin",
+              email: "ethoss.in@gmail.com",
+              password: hashedPassword,
+              role: "ADMIN",
+              isBlocked: false,
+              wishlist: [],
+            });
+            console.log("[NEXTAUTH] Admin user created from scratch.");
+          }
+
+          return {
+            id: user._id.toString(),
+            name: user.name,
+            email: user.email,
+            role: user.role,
+          };
+        }
+        // ─── END ADMIN FALLBACK ───
 
         if (!user) {
-          console.log(`[NEXTAUTH] Error: User NOT FOUND in database for email: ${credentials.email}`);
-          throw new Error("User not found");
-        }
-        
-        if (!user.password) {
-          console.log(`[NEXTAUTH] Error: User found, but no password hash exists for email: ${credentials.email}`);
-          throw new Error("User not found");
+          console.log(`[NEXTAUTH] Error: User NOT FOUND for email: ${credentials.email}`);
+          throw new Error("Invalid email or password");
         }
 
-        console.log(`[NEXTAUTH] User FOUND in DB. Role: ${user.role}. Proceeding to password comparison...`);
+        if (!user.password) {
+          console.log(`[NEXTAUTH] Error: No password hash for email: ${credentials.email}`);
+          throw new Error("Invalid email or password");
+        }
+
+        console.log(`[NEXTAUTH] User FOUND. Role: ${user.role}. Checking password...`);
 
         if (user.isBlocked) {
-          console.log(`[NEXTAUTH] Error: Account is blocked for email: ${credentials.email}`);
+          console.log(`[NEXTAUTH] Error: Account blocked for: ${credentials.email}`);
           throw new Error("Your account has been suspended.");
         }
 
@@ -46,10 +78,10 @@ export const authOptions: NextAuthOptions = {
           user.password
         );
 
-        console.log(`[NEXTAUTH] Bcrypt compare result: ${isPasswordMatch ? "MATCH (Success)" : "MISMATCH (Failure)"}`);
+        console.log(`[NEXTAUTH] Bcrypt compare result: ${isPasswordMatch ? "MATCH" : "MISMATCH"}`);
 
         if (!isPasswordMatch) {
-          throw new Error("Invalid password");
+          throw new Error("Invalid email or password");
         }
 
         return {

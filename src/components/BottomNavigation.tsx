@@ -30,7 +30,7 @@ export function BottomNavigation() {
             <li key={item.href} className="flex-1">
               <Link
                 href={item.href}
-                className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${
+                className={`flex flex-col items-center justify-center w-full min-h-[48px] space-y-1 transition-colors ${
                   isActive ? "text-primary font-medium" : "text-primary/50"
                 }`}
               >

@@ -56,12 +56,18 @@ export default function ShopPage() {
       return;
     }
 
+    const wasWishlisted = wishlist.includes(productId);
+    
     // Optimistic update
     setWishlist(prev => 
       prev.includes(productId) 
         ? prev.filter(id => id !== productId)
         : [...prev, productId]
     );
+
+    // Fire GSAP bounce event on Navbar heart icon
+    window.dispatchEvent(new Event("wishlist-updated"));
+    toast.success(wasWishlisted ? "Removed from Wishlist" : "Added to Wishlist ♥");
 
     try {
       const res = await fetch("/api/user/wishlist", {
@@ -209,7 +215,7 @@ export default function ShopPage() {
               href={`/product/${p._id}`}
               className="product-card group flex flex-col mb-4 md:mb-0 relative"
             >
-              <div className="w-full aspect-[3/4] overflow-hidden bg-[#F1F1F1] relative">
+              <div className="w-full aspect-[3/4] overflow-hidden bg-[#F1F1F1] relative rounded-2xl md:rounded-2xl">
                 <Image
                   src={p.images?.[0] || "/catsection/img1.jpeg"}
                   alt={p.name}
@@ -321,7 +327,7 @@ export default function ShopPage() {
         <div className="p-6 border-t border-primary/10">
           <button 
             onClick={() => setIsFilterOpen(false)}
-            className="w-full bg-primary text-background py-4 text-xs font-bold tracking-widest uppercase"
+            className="w-full bg-primary text-background py-4 text-xs font-bold tracking-widest uppercase rounded-2xl min-h-[48px]"
           >
             Apply ({filtered.length})
           </button>

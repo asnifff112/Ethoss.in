@@ -61,7 +61,13 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       toast.error("Please login to save to wishlist");
       return;
     }
+    const wasWishlisted = isWishlisted;
     setIsWishlisted(!isWishlisted);
+
+    // Fire GSAP bounce event on Navbar heart icon
+    window.dispatchEvent(new Event("wishlist-updated"));
+    toast.success(wasWishlisted ? "Removed from Wishlist" : "Added to Wishlist ♥");
+
     try {
       const res = await fetch("/api/user/wishlist", {
         method: "POST",
@@ -88,7 +94,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     
     setTimeout(() => {
       setIsAdding(false);
-      toast.success("Added to Cart!");
+      toast.success(`${product.name} added to Cart`);
     }, 500);
   };
 
@@ -161,7 +167,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     : 0;
 
   return (
-    <div ref={containerRef} className="pb-32 lg:pb-16 bg-[#faf5ec] min-h-[100svh] text-primary">
+    <div ref={containerRef} className="pb-32 lg:pb-16 bg-white min-h-[100svh] text-primary">
       <div className="product-anim-item max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 mt-2">
         <Link href={`/shop`} className="inline-flex items-center gap-2 text-[10px] tracking-[0.2em] font-bold uppercase text-primary/60 hover:text-primary transition-colors">
           <ArrowLeft size={14} /> Back
@@ -289,7 +295,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                 <button
                   onClick={handleAddToCart}
                   disabled={isAdding}
-                  className="w-full py-[18px] flex items-center justify-center gap-3 text-[12px] tracking-[0.2em] uppercase font-bold bg-primary text-background hover:bg-primary/90 transition-all duration-300 rounded-[2px] active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+                  className="w-full min-h-[48px] py-[18px] flex items-center justify-center gap-3 text-[12px] tracking-[0.2em] uppercase font-bold bg-primary text-background hover:bg-primary/90 transition-all duration-300 rounded-2xl active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   <ShoppingBag size={18} />
                   {isAdding ? "Adding..." : "Add to Cart"}

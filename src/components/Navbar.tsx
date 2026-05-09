@@ -2,22 +2,19 @@
 
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   Menu,
   X,
   ChevronRight,
+  ShoppingBag,
+  User,
+  Heart,
 } from "lucide-react";
-// ============================================================
-// SHOWCASE MODE — Auth/Cart icons removed from imports.
-// Re-enable when backend is ready:
-import { ShoppingBag, User, Heart } from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
 import { useSession } from "next-auth/react";
-// ============================================================
 import gsap from "gsap";
 
-// SHOWCASE MODE NAV — Only public informational routes
 const NAV_LINKS = [
   { label: "Home", href: "/" },
   { label: "Products", href: "/shop" },
@@ -29,24 +26,29 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
-  const router = useRouter();
   const mobileNavRef = useRef<HTMLDivElement>(null);
-  
+  const cartIconRef = useRef<HTMLDivElement>(null);
+  const heartIconRef = useRef<HTMLDivElement>(null);
+
   const itemCount = useCartStore((s) => s.items.reduce((total: number, item: any) => total + item.quantity, 0));
+  const prevItemCount = useRef(itemCount);
   const { data: session } = useSession();
   const isLoggedIn = !!session;
 
+  // Scroll handler
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handler, { passive: true });
     return () => window.removeEventListener("scroll", handler);
   }, []);
 
+  // Body overflow lock
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
   }, [open]);
 
+  // Mobile nav GSAP animation
   useEffect(() => {
     const ctx = gsap.context(() => {
       if (!mobileNavRef.current) return;
@@ -64,9 +66,36 @@ export default function Navbar() {
     return () => ctx.revert();
   }, [open]);
 
+  // GSAP bounce on cart icon when item count changes
+  useEffect(() => {
+    if (itemCount > prevItemCount.current && cartIconRef.current) {
+      gsap.fromTo(
+        cartIconRef.current,
+        { scale: 1 },
+        { scale: 1.4, duration: 0.2, ease: "power2.out", yoyo: true, repeat: 1 }
+      );
+    }
+    prevItemCount.current = itemCount;
+  }, [itemCount]);
+
   if (pathname?.startsWith("/admin")) {
     return null;
   }
+
+  // Trigger heart bounce externally via a custom event
+  useEffect(() => {
+    const handleWishlistBounce = () => {
+      if (heartIconRef.current) {
+        gsap.fromTo(
+          heartIconRef.current,
+          { scale: 1 },
+          { scale: 1.4, duration: 0.2, ease: "power2.out", yoyo: true, repeat: 1 }
+        );
+      }
+    };
+    window.addEventListener("wishlist-updated", handleWishlistBounce);
+    return () => window.removeEventListener("wishlist-updated", handleWishlistBounce);
+  }, []);
 
   return (
     <>
@@ -82,7 +111,7 @@ export default function Navbar() {
             <div className="flex items-center gap-8 relative z-[110]">
               <button
                 onClick={() => setOpen(true)}
-                className="md:hidden p-4 -ml-4 cursor-pointer text-primary relative z-[110]"
+                className="md:hidden min-h-[48px] min-w-[48px] flex items-center justify-center -ml-3 cursor-pointer text-primary relative z-[110]"
                 aria-label="Open menu"
               >
                 <Menu size={22} strokeWidth={1.5} />
@@ -114,26 +143,30 @@ export default function Navbar() {
               </Link>
             </div>
 
-            <div className="flex items-center justify-end gap-2 sm:gap-4 ml-auto relative z-[110] pointer-events-auto">
+            <div className="flex items-center justify-end gap-1 sm:gap-3 ml-auto relative z-[110] pointer-events-auto">
               <Link 
                 href={isLoggedIn ? "/profile" : "/login"} 
-                className="text-primary hover:text-primary/70 hover:opacity-80 transition-all cursor-pointer pointer-events-auto p-2"
+                className="text-primary hover:text-primary/70 transition-all cursor-pointer pointer-events-auto min-h-[48px] min-w-[48px] flex items-center justify-center"
               >
-                <User size={20} strokeWidth={1.5} className="cursor-pointer pointer-events-auto" />
+                <User size={20} strokeWidth={1.5} />
               </Link>
               <Link 
                 href="/profile" 
-                className="text-primary hover:text-primary/70 hover:opacity-80 transition-all cursor-pointer pointer-events-auto p-2"
+                className="text-primary hover:text-primary/70 transition-all cursor-pointer pointer-events-auto min-h-[48px] min-w-[48px] flex items-center justify-center"
               >
-                <Heart size={20} strokeWidth={1.5} className="cursor-pointer pointer-events-auto" />
+                <div ref={heartIconRef}>
+                  <Heart size={20} strokeWidth={1.5} />
+                </div>
               </Link>
               <Link 
                 href="/cart" 
-                className="text-primary hover:text-primary/70 hover:opacity-80 transition-all cursor-pointer pointer-events-auto relative flex items-center p-2"
+                className="text-primary hover:text-primary/70 transition-all cursor-pointer pointer-events-auto relative min-h-[48px] min-w-[48px] flex items-center justify-center"
               >
-                <ShoppingBag size={20} strokeWidth={1.5} className="cursor-pointer pointer-events-auto" />
+                <div ref={cartIconRef}>
+                  <ShoppingBag size={20} strokeWidth={1.5} />
+                </div>
                 {itemCount > 0 && (
-                  <span className="absolute -top-1 right-0 bg-primary text-background text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center pointer-events-none">
+                  <span className="absolute top-1 right-0 bg-[#1e3a8a] text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center pointer-events-none">
                     {itemCount}
                   </span>
                 )}
@@ -153,11 +186,11 @@ export default function Navbar() {
         <div className={`absolute top-0 left-0 h-full w-[80%] max-w-xs bg-background shadow-2xl transition-transform duration-300 ${open ? "translate-x-0" : "-translate-x-full"}`}>
           <div className="flex items-center justify-between p-6 border-b border-primary/10">
             <span className="text-lg font-serif tracking-[0.2em] text-primary uppercase">Ethoss</span>
-            <button onClick={() => setOpen(false)}><X size={20} /></button>
+            <button onClick={() => setOpen(false)} className="min-h-[48px] min-w-[48px] flex items-center justify-center"><X size={20} /></button>
           </div>
           <nav className="p-6 space-y-1" ref={mobileNavRef}>
             {NAV_LINKS.map((l) => (
-              <Link key={l.href} href={l.href} onClick={() => setOpen(false)} className="mobile-nav-link flex items-center justify-between py-4 border-b border-primary/5 text-sm tracking-widest uppercase">
+              <Link key={l.href} href={l.href} onClick={() => setOpen(false)} className="mobile-nav-link flex items-center justify-between py-4 border-b border-primary/5 text-sm tracking-widest uppercase min-h-[48px]">
                 {l.label} <ChevronRight size={16} className="text-primary/30" />
               </Link>
             ))}

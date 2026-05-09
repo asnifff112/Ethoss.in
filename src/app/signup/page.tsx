@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, Loader2 } from "lucide-react";
 import gsap from "gsap";
+import { toast } from "sonner";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -15,6 +16,7 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   // GSAP Entrance Animation
   useEffect(() => {
@@ -28,10 +30,22 @@ export default function SignupPage() {
     return () => ctx.revert();
   }, []);
 
+  // GSAP Shake on error
+  const shakeForm = () => {
+    if (formRef.current) {
+      gsap.fromTo(
+        formRef.current,
+        { x: -12 },
+        { x: 0, duration: 0.5, ease: "elastic.out(1, 0.3)" }
+      );
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+    toast.loading("Creating your account...", { id: "signup-toast" });
 
     try {
       const res = await fetch("/api/auth/signup", {
@@ -43,14 +57,19 @@ export default function SignupPage() {
       const data = await res.json();
 
       if (!res.ok) {
+        toast.error(data.message || "Something went wrong", { id: "signup-toast" });
         setError(data.message || "Something went wrong");
         setLoading(false);
+        shakeForm();
       } else {
+        toast.success("Account created! Redirecting to login...", { id: "signup-toast" });
         router.push("/login");
       }
     } catch (err) {
+      toast.error("Network error. Please try again.", { id: "signup-toast" });
       setError("Failed to register. Please try again later.");
       setLoading(false);
+      shakeForm();
     }
   };
 
@@ -58,7 +77,7 @@ export default function SignupPage() {
     <div className="min-h-[100svh] flex flex-col items-center justify-center px-6 py-12 bg-white text-[#1e3a8a]">
       <div ref={containerRef} className="w-full max-w-md space-y-10">
         
-        {/* Header Section */}
+        {/* Header */}
         <div className="text-center anim-item">
           <p className="text-[10px] tracking-[0.3em] uppercase text-[#1e3a8a]/50 mb-3 font-medium">
             Join Ethoss
@@ -68,17 +87,17 @@ export default function SignupPage() {
           </h1>
         </div>
 
-        {/* Error Message */}
+        {/* Error */}
         {error && (
-          <div className="anim-item bg-red-50 text-red-500 text-xs p-4 rounded-2xl tracking-wide text-center">
+          <div className="bg-red-50 text-red-500 text-xs p-4 rounded-3xl tracking-wide text-center">
             {error}
           </div>
         )}
 
-        {/* Form Section */}
-        <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Form */}
+        <form ref={formRef} onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2 anim-item">
-            <label className="text-[11px] tracking-wide font-medium text-[#1e3a8a]/70 pl-1">
+            <label className="text-[11px] tracking-wide font-medium text-[#1e3a8a]/70 pl-4">
               Full Name
             </label>
             <input
@@ -86,13 +105,13 @@ export default function SignupPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full bg-[#1e3a8a]/[0.03] border border-[#1e3a8a]/10 rounded-2xl px-5 py-4 text-sm text-[#1e3a8a] focus:outline-none focus:border-[#1e3a8a]/40 focus:bg-white transition-all placeholder:text-[#1e3a8a]/30 font-light"
+              className="w-full bg-[#1e3a8a]/[0.03] border border-[#1e3a8a]/10 rounded-3xl px-6 py-4 text-sm text-[#1e3a8a] focus:outline-none focus:border-[#1e3a8a]/40 focus:bg-white transition-all placeholder:text-[#1e3a8a]/25 font-light"
               placeholder="Enter your name"
             />
           </div>
 
           <div className="space-y-2 anim-item">
-            <label className="text-[11px] tracking-wide font-medium text-[#1e3a8a]/70 pl-1">
+            <label className="text-[11px] tracking-wide font-medium text-[#1e3a8a]/70 pl-4">
               Email Address
             </label>
             <input
@@ -100,13 +119,13 @@ export default function SignupPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full bg-[#1e3a8a]/[0.03] border border-[#1e3a8a]/10 rounded-2xl px-5 py-4 text-sm text-[#1e3a8a] focus:outline-none focus:border-[#1e3a8a]/40 focus:bg-white transition-all placeholder:text-[#1e3a8a]/30 font-light"
+              className="w-full bg-[#1e3a8a]/[0.03] border border-[#1e3a8a]/10 rounded-3xl px-6 py-4 text-sm text-[#1e3a8a] focus:outline-none focus:border-[#1e3a8a]/40 focus:bg-white transition-all placeholder:text-[#1e3a8a]/25 font-light"
               placeholder="name@example.com"
             />
           </div>
 
           <div className="space-y-2 anim-item">
-            <label className="text-[11px] tracking-wide font-medium text-[#1e3a8a]/70 pl-1">
+            <label className="text-[11px] tracking-wide font-medium text-[#1e3a8a]/70 pl-4">
               Password
             </label>
             <input
@@ -114,15 +133,16 @@ export default function SignupPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full bg-[#1e3a8a]/[0.03] border border-[#1e3a8a]/10 rounded-2xl px-5 py-4 text-sm text-[#1e3a8a] focus:outline-none focus:border-[#1e3a8a]/40 focus:bg-white transition-all placeholder:text-[#1e3a8a]/30 font-light"
-              placeholder="Create a password"
+              minLength={6}
+              className="w-full bg-[#1e3a8a]/[0.03] border border-[#1e3a8a]/10 rounded-3xl px-6 py-4 text-sm text-[#1e3a8a] focus:outline-none focus:border-[#1e3a8a]/40 focus:bg-white transition-all placeholder:text-[#1e3a8a]/25 font-light"
+              placeholder="Create a password (min 6 chars)"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="anim-item w-full flex items-center justify-center gap-3 py-4 mt-8 bg-[#1e3a8a] text-white tracking-widest text-[11px] font-medium rounded-3xl hover:bg-[#1e3a8a]/90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl active:scale-[0.98]"
+            className="anim-item w-full flex items-center justify-center gap-3 py-4 mt-8 min-h-[48px] bg-[#1e3a8a] text-white tracking-widest text-[11px] font-medium rounded-3xl hover:bg-[#1e3a8a]/90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl active:scale-[0.98]"
           >
             {loading ? (
               <>
@@ -138,8 +158,8 @@ export default function SignupPage() {
           </button>
         </form>
 
-        {/* Footer Section */}
-        <div className="anim-item pt-8 text-center">
+        {/* Footer */}
+        <div className="anim-item pt-6 text-center">
           <p className="text-[11px] text-[#1e3a8a]/60 tracking-wide font-medium">
             Already have an account?{" "}
             <Link

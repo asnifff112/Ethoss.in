@@ -4,11 +4,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, Package, LogOut, Sparkles, MessageSquare, Users } from "lucide-react";
 import { signOut } from "next-auth/react";
+import { toast } from "sonner";
 
 export function AdminSidebar() {
   const pathname = usePathname();
 
   const handleLogout = () => {
+    toast.success("Logged out successfully");
     signOut({ callbackUrl: "/" });
   };
 
