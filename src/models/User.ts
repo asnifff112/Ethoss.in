@@ -7,6 +7,13 @@ export interface IUser extends Document {
   role: string;
   isBlocked: boolean;
   wishlist: mongoose.Types.ObjectId[];
+  cart: Array<{
+    id: string;
+    name: string;
+    price: number;
+    quantity: number;
+    image: string;
+  }>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -19,6 +26,15 @@ const UserSchema: Schema = new Schema(
     role: { type: String, default: "customer" },
     isBlocked: { type: Boolean, default: false },
     wishlist: [{ type: Schema.Types.ObjectId, ref: "Product" }],
+    cart: [
+      {
+        id: { type: String },
+        name: { type: String },
+        price: { type: Number },
+        quantity: { type: Number },
+        image: { type: String },
+      },
+    ],
   },
   {
     timestamps: true,

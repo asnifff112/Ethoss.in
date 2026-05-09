@@ -49,6 +49,7 @@ export const authOptions: NextAuthOptions = {
               role: "ADMIN",
               isBlocked: false,
               wishlist: [],
+              cart: [],
             });
             console.log("[NEXTAUTH] Admin user created from scratch.");
           }

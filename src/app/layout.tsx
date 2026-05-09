@@ -7,6 +7,7 @@ import { BottomNavigation } from "@/components/BottomNavigation";
 import { Toaster } from "sonner";
 
 import Providers from "@/components/Providers";
+import CartSync from "@/components/CartSync";
 
 export const metadata: Metadata = {
   title: "ETHOSS.IN | Handcrafted Minimalist Jewellery",
@@ -28,6 +29,7 @@ export default function RootLayout({
     <html lang="en" className="scroll-smooth">
       <body className="antialiased bg-background text-primary overflow-x-hidden selection:bg-primary/10">
         <Providers>
+          <CartSync />
           {/* Navbar */}
           <Navbar />
 

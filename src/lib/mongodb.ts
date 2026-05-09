@@ -20,9 +20,15 @@ async function connectToDatabase() {
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
+      maxPoolSize: 10,
+      serverSelectionTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
+      family: 4, // Use IPv4 to avoid potential issues on some networks
     };
 
+    console.log("[MONGODB] Initializing new connection promise...");
     cached.promise = mongoose.connect(MONGODB_URI!, opts).then((mongoose) => {
+      console.log("[MONGODB] Connection established successfully.");
       return mongoose;
     });
   }

@@ -15,6 +15,7 @@ interface CartStore {
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
+  setCart: (items: CartItem[]) => void;
 }
 
 export const useCartStore = create<CartStore>()(
@@ -45,6 +46,8 @@ export const useCartStore = create<CartStore>()(
       })),
 
       clearCart: () => set({ items: [] }),
+
+      setCart: (items) => set({ items }),
     }),
     {
       name: 'ethoss-cart-storage',

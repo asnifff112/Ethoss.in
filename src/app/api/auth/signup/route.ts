@@ -56,6 +56,7 @@ export async function POST(request: Request) {
       role: "customer",
       isBlocked: false,
       wishlist: [],
+      cart: [],
     });
 
     console.log(`[SIGNUP] User created successfully: ${newUser.email}, ID: ${newUser._id}`);
