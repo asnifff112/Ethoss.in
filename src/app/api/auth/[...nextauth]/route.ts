@@ -122,8 +122,6 @@ export const authOptions: NextAuthOptions = {
     signIn: "/login",
   },
   secret: process.env.NEXTAUTH_SECRET,
-  // trustHost allows NextAuth to work on Vercel without NEXTAUTH_URL
-  trustHost: true,
 };
 
 const handler = NextAuth(authOptions);
