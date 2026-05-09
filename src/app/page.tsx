@@ -15,6 +15,7 @@ export default function HomePage() {
   const heroRef = useRef<HTMLDivElement>(null);
   const storyRef = useRef<HTMLDivElement>(null);
   const feedbackRef = useRef<HTMLDivElement>(null);
+  const categoryRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [feedbacks, setFeedbacks] = useState<any[]>([]);
 
   useEffect(() => {
@@ -84,6 +85,31 @@ export default function HomePage() {
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("orientationchange", handleResize);
     };
+  }, []);
+
+  // GSAP scroll animation for categories
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      categoryRefs.current.forEach((el, i) => {
+        if (!el) return;
+        gsap.fromTo(
+          el,
+          { y: 60, opacity: 0 },
+          {
+            y: 0,
+            opacity: 1,
+            duration: 1,
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: el,
+              start: "top 85%",
+              once: true,
+            },
+          }
+        );
+      });
+    });
+    return () => ctx.revert();
   }, []);
 
   // Fetch feedbacks from MongoDB
@@ -165,15 +191,16 @@ export default function HomePage() {
 
         <div className="space-y-12 sm:space-y-20">
           {db.categories.map((category, idx) => (
-            <div
+            <Link
               key={category.id}
-              className={`flex flex-col gap-6 sm:gap-12 items-center ${
+              href={(category as any).link || `/category/${category.id}`}
+              ref={(el) => { categoryRefs.current[idx] = el; }}
+              className={`flex flex-col gap-6 sm:gap-12 items-center group/card transition-all duration-500 ${
                 idx % 2 !== 0 ? "sm:flex-row-reverse" : "sm:flex-row"
               }`}
             >
               {/* Category Image */}
-              <Link
-                href={`/category/${category.id}`}
+              <div
                 className="w-full sm:w-1/2 min-h-[50vh] sm:min-h-[70vh] relative group overflow-hidden bg-background rounded-xl block p-8 sm:p-12"
               >
                 <Image
@@ -183,7 +210,7 @@ export default function HomePage() {
                   sizes="(max-width: 768px) 100vw, 50vw"
                   className="object-contain p-4 group-hover:scale-105 transition-transform duration-1000 ease-out"
                 />
-              </Link>
+              </div>
 
               {/* Category Info */}
               <div className="w-full sm:w-1/2 flex flex-col justify-center sm:px-10">
@@ -193,18 +220,17 @@ export default function HomePage() {
                 <p className="text-primary/60 text-sm sm:text-base leading-relaxed tracking-wide mb-8 max-w-md">
                   {category.description}
                 </p>
-                <Link
-                  href={`/category/${category.id}`}
-                  className="inline-flex items-center gap-3 text-sm tracking-widest uppercase text-primary border-b border-primary/30 pb-2 hover:border-primary transition-colors w-fit group"
+                <div
+                  className="inline-flex items-center gap-3 text-sm tracking-widest uppercase text-primary border-b border-primary/30 pb-2 group-hover/card:border-primary transition-colors w-fit group"
                 >
                   Discover Collection{" "}
                   <ArrowRight
                     size={16}
                     className="group-hover:translate-x-1 transition-transform"
                   />
-                </Link>
+                </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </section>

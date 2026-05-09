@@ -1,28 +1,25 @@
 {
   "categories": [
     {
+      "id": "intricate-weaves",
+      "title": "Intricate Weaves",
+      "description": "Strength in every strand. A testament to the patient art of slow-handcrafting.",
+      "image_url": "/intricate-weaves.png",
+      "link": "/shop?category=beads"
+    },
+    {
       "id": "onyx-essence",
       "title": "The Onyx Essence",
       "description": "Pure. Polished. Timeless. A minimalist staple designed for those who find beauty in simplicity.",
-      "image_url": "/catsection/img2.jpeg"
+      "image_url": "/onyx-essence.png",
+      "link": "/shop?category=beads"
     },
     {
       "id": "earthbound-soul",
       "title": "Earthbound Soul",
       "description": "Raw textures meet refined craftsmanship. Each bead tells a story of the earth's natural artistry.",
-      "image_url": "/earthbound-soul.png"
-    },
-    {
-      "id": "intricate-weaves",
-      "title": "Intricate Weaves",
-      "description": "Strength in every strand. A testament to the patient art of slow-handcrafting.",
-      "image_url": "/intricate-weaves.png"
-    },
-    {
-      "id": "celestial-duo",
-      "title": "Celestial Duo",
-      "description": "Two pieces. One soul. Handcrafted combo sets designed to be worn together — or gifted as a pair.",
-      "image_url": "/catsection/img3.jpeg"
+      "image_url": "/earthbound-soul.png",
+      "link": "/shop?category=clothing"
     }
   ],
   "products": [
