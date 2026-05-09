@@ -179,7 +179,7 @@ export default function HomePage() {
       </section>
 
       {/* ─── SECTION 2 : CATEGORIES ─── */}
-      <section id="collections" className="py-20 sm:py-28 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <section id="collections" className="py-20 sm:py-28 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
         <div className="mb-14 text-center">
           <p className="text-[10px] tracking-[0.35em] uppercase text-primary/40 mb-3">
             The Collections
@@ -189,39 +189,41 @@ export default function HomePage() {
           </h2>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="flex flex-col gap-16 sm:gap-24">
           {db.categories.map((category, idx) => (
             <div
               key={category.id}
               ref={(el) => { categoryRefs.current[idx] = el; }}
-              className="group flex flex-col"
+              className={`flex flex-col sm:flex-row items-center gap-6 sm:gap-12 ${
+                idx % 2 !== 0 ? "sm:flex-row-reverse" : ""
+              }`}
             >
-              {/* Image Container */}
-              <div className="w-full overflow-hidden rounded-xl bg-gray-50 border border-primary/5">
+              {/* Image */}
+              <div className="w-full sm:w-1/2 overflow-hidden rounded-xl bg-gray-50">
                 <Image
                   src={category.image_url}
                   alt={category.title}
-                  width={500}
-                  height={500}
-                  sizes="(max-width: 768px) 50vw, 25vw"
+                  width={600}
+                  height={600}
+                  sizes="(max-width: 768px) 100vw, 50vw"
                   className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                 />
               </div>
 
               {/* Info */}
-              <div className="mt-4 sm:mt-5 flex flex-col flex-1">
-                <h3 className="text-sm sm:text-lg font-serif text-primary uppercase tracking-wider leading-tight">
+              <div className="w-full sm:w-1/2 flex flex-col justify-center">
+                <h3 className="text-2xl sm:text-4xl font-serif text-primary uppercase tracking-wider leading-tight">
                   {category.title}
                 </h3>
-                <p className="text-[11px] sm:text-[13px] text-primary/50 leading-relaxed tracking-wide mt-2 flex-1">
+                <p className="text-[13px] sm:text-sm text-primary/50 leading-relaxed tracking-wide mt-3 sm:mt-4 max-w-md">
                   {category.description}
                 </p>
                 <Link
                   href={(category as any).link || `/category/${category.id}`}
-                  className="mt-4 sm:mt-5 inline-flex items-center justify-center gap-2 w-full py-3 sm:py-3.5 border border-primary/20 rounded-lg text-[9px] sm:text-[10px] tracking-[0.15em] uppercase font-bold text-primary hover:bg-primary hover:text-white transition-all duration-300"
+                  className="mt-6 sm:mt-8 inline-flex items-center justify-center gap-2.5 w-full sm:w-auto px-8 py-3.5 rounded-lg text-[10px] sm:text-[11px] tracking-[0.15em] uppercase font-bold text-primary shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.1)] transition-shadow duration-300"
                 >
                   Discover Collection
-                  <ArrowRight size={12} className="group-hover:translate-x-0.5 transition-transform" />
+                  <ArrowRight size={13} />
                 </Link>
               </div>
             </div>
