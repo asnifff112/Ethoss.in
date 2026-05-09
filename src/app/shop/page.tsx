@@ -204,6 +204,20 @@ export default function ShopPage() {
       </div>
 
       {/* --- PRODUCT GRID --- */}
+      {filtered.length === 0 ? (
+        <div className="col-span-full flex flex-col items-center justify-center py-24 px-6 text-center">
+          <div className="w-16 h-16 rounded-full bg-[#1e3a8a]/5 flex items-center justify-center mb-6">
+            <SlidersHorizontal size={24} className="text-[#1e3a8a]/30" />
+          </div>
+          <h3 className="text-lg font-serif text-[#1e3a8a] mb-2">No products found</h3>
+          <p className="text-sm text-[#1e3a8a]/50 max-w-xs mb-6">
+            We're updating our collection. Check back soon for new handcrafted pieces.
+          </p>
+          <Link href="/" className="text-[11px] tracking-widest uppercase font-medium text-white bg-[#1e3a8a] px-6 py-3 rounded-3xl hover:bg-[#1e3a8a]/90 transition-all">
+            Back to Home
+          </Link>
+        </div>
+      ) : (
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-[2px] md:gap-8 px-[1px] md:px-0 mt-[2px] md:mt-0">
         {filtered.map((p) => {
           const isSoldOut = p.is_sold_out;
@@ -267,6 +281,7 @@ export default function ShopPage() {
           );
         })}
       </div>
+      )}
 
       {/* --- MOBILE FILTER SLIDE-IN PANEL --- */}
       <div 
