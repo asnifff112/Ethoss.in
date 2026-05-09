@@ -5,9 +5,11 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { LogOut, Heart, ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function ProfilePage() {
   const { data: session, status } = useSession();
+  const router = useRouter();
   const [wishlist, setWishlist] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -21,7 +23,7 @@ export default function ProfilePage() {
         })
         .catch(() => setLoading(false));
     } else if (status === "unauthenticated") {
-      window.location.href = "/login";
+      router.push("/login");
     }
   }, [status]);
 
@@ -30,7 +32,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-[100svh] bg-[#faf5ec] py-24 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-[100svh] bg-white py-24 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         
         {/* Profile Header */}
@@ -53,7 +55,7 @@ export default function ProfilePage() {
         </div>
 
         {/* User Info Card */}
-        <div className="bg-white p-8 rounded-sm shadow-sm border border-primary/5 mb-12">
+        <div className="bg-white p-8 rounded-2xl shadow-sm border border-primary/5 mb-12">
           <h2 className="text-sm font-bold tracking-widest uppercase text-primary mb-6 border-b border-primary/10 pb-4">
             Account Details
           </h2>
@@ -76,7 +78,7 @@ export default function ProfilePage() {
           </h2>
 
           {wishlist.length === 0 ? (
-            <div className="bg-white p-12 text-center rounded-sm shadow-sm border border-primary/5">
+            <div className="bg-white p-12 text-center rounded-2xl shadow-sm border border-primary/5">
               <Heart size={32} strokeWidth={1} className="mx-auto text-primary/20 mb-4" />
               <p className="text-sm text-primary/50 mb-6">Your wishlist is currently empty.</p>
               <Link href="/shop" className="inline-flex items-center gap-2 text-[10px] tracking-[0.2em] font-bold uppercase text-primary border-b border-primary pb-1">

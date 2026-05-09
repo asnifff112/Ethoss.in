@@ -78,10 +78,6 @@ export default function Navbar() {
     prevItemCount.current = itemCount;
   }, [itemCount]);
 
-  if (pathname?.startsWith("/admin")) {
-    return null;
-  }
-
   // Trigger heart bounce externally via a custom event
   useEffect(() => {
     const handleWishlistBounce = () => {
@@ -96,6 +92,11 @@ export default function Navbar() {
     window.addEventListener("wishlist-updated", handleWishlistBounce);
     return () => window.removeEventListener("wishlist-updated", handleWishlistBounce);
   }, []);
+
+  // Hide Navbar on admin pages — MUST be after all hooks
+  if (pathname?.startsWith("/admin")) {
+    return null;
+  }
 
   return (
     <>
