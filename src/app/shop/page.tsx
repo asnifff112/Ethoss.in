@@ -50,9 +50,8 @@ function ShopContent() {
         const data = await res.json();
         setProducts(data);
         
-        // Extract unique categories
-        const uniqueCats = Array.from(new Set(data.map((p: any) => p.category_id)));
-        setCategories(["all", ...uniqueCats as string[]]);
+        // Strictly use these 4 categories (plus 'all')
+        setCategories(["all", "The Knot Theory", "Volcanic Soul", "The Onyx Essence", "Duo Essence"]);
 
         if (session) {
           const wlRes = await fetch("/api/user/wishlist");
