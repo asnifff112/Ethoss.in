@@ -37,8 +37,15 @@ export default function CartPage() {
     const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
     
-    // Optionally clear cart after redirecting to WhatsApp
-    // clearCart();
+    // Clear cart locally and in DB after redirect
+    clearCart();
+    if (session) {
+      fetch("/api/user/cart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cart: [] }),
+      }).catch(err => console.error("Failed to clear DB cart", err));
+    }
   };
 
   if (items.length === 0) {

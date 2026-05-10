@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, use } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, Truck, Heart, ShoppingBag } from "lucide-react";
 import gsap from "gsap";
 import { useCartStore } from "@/store/cartStore";
@@ -21,6 +22,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const containerRef = useRef<HTMLDivElement>(null);
   const addItem = useCartStore((s) => s.addItem);
   const { data: session } = useSession();
+  const router = useRouter();
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -59,6 +61,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const toggleWishlist = async () => {
     if (!session) {
       toast.error("Please login to save to wishlist");
+      router.push("/login");
       return;
     }
     const wasWishlisted = isWishlisted;
@@ -83,6 +86,11 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
   const handleAddToCart = () => {
     if (!product) return;
+    if (!session) {
+      toast.error("Please login to add items to your cart");
+      router.push("/login");
+      return;
+    }
     setIsAdding(true);
     addItem({
       id: product._id,

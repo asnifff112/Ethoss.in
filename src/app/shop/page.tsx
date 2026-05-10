@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { SlidersHorizontal, X, Heart } from "lucide-react";
 import gsap from "gsap";
@@ -22,6 +23,7 @@ export default function ShopPage() {
   const filterPanelRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const { data: session } = useSession();
+  const router = useRouter();
 
   // Fetch products and wishlist
   useEffect(() => {
@@ -53,6 +55,7 @@ export default function ShopPage() {
     e.preventDefault();
     if (!session) {
       toast.error("Please login to save to wishlist");
+      router.push("/login");
       return;
     }
 
