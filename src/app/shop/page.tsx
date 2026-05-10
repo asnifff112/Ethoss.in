@@ -12,6 +12,14 @@ import { toast } from "sonner";
 
 gsap.registerPlugin(ScrollTrigger);
 
+const CATEGORY_MAP: Record<string, string> = {
+  "all": "All Collections",
+  "knot-theory": "The Knot Theory",
+  "volcanic-soul": "Volcanic Soul",
+  "onyx-essence": "The Onyx Essence",
+  "duo-essence": "Duo Essence"
+};
+
 function ShopContent() {
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<string[]>(["all"]);
@@ -164,7 +172,7 @@ function ShopContent() {
           <div className="flex items-center gap-3 overflow-x-auto hide-scrollbar pb-2 px-4 sm:mx-0 sm:px-0">
             <SlidersHorizontal size={14} className="text-primary/40 flex-shrink-0" />
             {categories.map((catId) => {
-              const catName = catId === "all" ? "All" : catId;
+              const catName = CATEGORY_MAP[catId] || catId;
               return (
                 <button
                   key={catId}
@@ -311,7 +319,7 @@ function ShopContent() {
             <h4 className="text-[10px] tracking-[0.2em] uppercase text-primary/40 mb-4">Categories</h4>
             <div className="flex flex-col items-start gap-4">
               {categories.map((catId) => {
-                const catName = catId === "all" ? "All Collections" : catId;
+                const catName = CATEGORY_MAP[catId] || catId;
                 const isActive = category === catId;
                 return (
                   <button
