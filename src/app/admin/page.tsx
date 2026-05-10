@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Package, AlertTriangle, MessageSquare, ArrowUpRight, Loader2 } from "lucide-react";
+import { Package, AlertTriangle, MessageSquare, ArrowUpRight, Loader2, Users } from "lucide-react";
 import { toast } from "sonner";
 
 export default function AdminDashboardPage() {
@@ -32,9 +32,9 @@ export default function AdminDashboardPage() {
         <h1 className="text-3xl font-serif text-primary uppercase tracking-widest">Dashboard</h1>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
         {loading ? (
-             Array(3).fill(0).map((_, i) => (
+             Array(4).fill(0).map((_, i) => (
                 <div key={i} className="bg-white p-6 rounded-2xl border border-primary/5 shadow-sm animate-pulse h-40" />
              ))
         ) : (
@@ -42,7 +42,8 @@ export default function AdminDashboardPage() {
             const icons: Record<string, any> = {
                 "Total Products": Package,
                 "Sold Out Items": AlertTriangle,
-                "Total Feedbacks": MessageSquare
+                "Total Feedbacks": MessageSquare,
+                "Total Users": Users
             };
             const Icon = icons[stat.label] || Package;
             
