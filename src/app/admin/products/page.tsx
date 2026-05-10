@@ -20,10 +20,10 @@ interface Product {
 }
 
 const CATEGORIES = [
-  { id: "knot-theory", title: "The Knot Theory" },
-  { id: "volcanic-soul", title: "Volcanic Soul" },
-  { id: "onyx-essence", title: "The Onyx Essence" },
-  { id: "duo-essence", title: "Duo Essence" }
+  { id: "The Knot Theory", title: "The Knot Theory" },
+  { id: "Volcanic Soul", title: "Volcanic Soul" },
+  { id: "The Onyx Essence", title: "The Onyx Essence" },
+  { id: "Duo Essence", title: "Duo Essence" }
 ];
 
 export default function AdminProductsPage() {
@@ -40,7 +40,7 @@ export default function AdminProductsPage() {
     original_price: "",
     price: "",
     delivery_charge: "",
-    category_id: "knot-theory",
+    category_id: "The Knot Theory",
     images: ["", "", ""],
     is_sold_out: false,
   });
@@ -99,7 +99,7 @@ export default function AdminProductsPage() {
         original_price: "",
         price: "",
         delivery_charge: "0",
-        category_id: "knot-theory",
+        category_id: "The Knot Theory",
         images: ["", "", ""],
         is_sold_out: false,
       });

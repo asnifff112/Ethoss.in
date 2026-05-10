@@ -6,70 +6,78 @@ export async function GET() {
   try {
     await connectToDatabase();
 
-    console.log("[MIGRATION] Starting bulk update of categories...");
+    console.log("[MIGRATION] Starting targeted bulk update...");
 
-    // 1. The Knot Theory (Woven/Thread/Knot)
+    // 1. TARGETED UPDATE: Specific products to "The Knot Theory"
+    const knotTheoryProducts = [
+      "Crimson Flare Bead",
+      "Lagoon Bead",
+      "Obsidian Pulse",
+      "Midnight Bead",
+      "Lave Bead"
+    ];
+
     const res1 = await Product.updateMany(
-      { 
-        $or: [
-          { name: { $regex: /Knot|Woven|Theory|Thread|Bracelet/i } },
-          { caption: { $regex: /Knot|Woven|Theory|Thread/i } }
-        ]
-      },
-      { $set: { category_id: "knot-theory" } }
+      { name: { $in: knotTheoryProducts } },
+      { $set: { category_id: "The Knot Theory" } }
     );
 
-    // 2. Volcanic Soul (Lava/Raw/Volcanic)
+    // 2. Generic Mapping for others to ensure they have the new EXACT category names
+    
+    // Volcanic Soul
     const res2 = await Product.updateMany(
       { 
+        name: { $nin: knotTheoryProducts },
         $or: [
-          { name: { $regex: /Lave|Volcanic|Flare|Fire|Raw/i } },
-          { caption: { $regex: /Lava|Volcanic|Fire|Raw/i } }
+          { name: { $regex: /Volcanic/i } },
+          { caption: { $regex: /Volcanic/i } }
         ]
       },
-      { $set: { category_id: "volcanic-soul" } }
+      { $set: { category_id: "Volcanic Soul" } }
     );
 
-    // 3. The Onyx Essence (Black/Obsidian/Midnight/Polished)
+    // The Onyx Essence
     const res3 = await Product.updateMany(
       { 
+        name: { $nin: knotTheoryProducts },
         $or: [
-          { name: { $regex: /Obsidian|Midnight|Onyx|Black|Polished/i } },
-          { caption: { $regex: /Obsidian|Midnight|Onyx|Black|Polished/i } }
+          { name: { $regex: /Onyx|Black/i } },
+          { caption: { $regex: /Onyx|Black/i } }
         ]
       },
-      { $set: { category_id: "onyx-essence" } }
+      { $set: { category_id: "The Onyx Essence" } }
     );
 
-    // 4. Duo Essence (Duo/Pair/Combo/Lagoon)
+    // Duo Essence
     const res4 = await Product.updateMany(
       { 
+        name: { $nin: knotTheoryProducts },
         $or: [
-          { name: { $regex: /Duo|Combo|Pair|Lagoon|Twin/i } },
-          { caption: { $regex: /Duo|Combo|Pair|Twin/i } }
+          { name: { $regex: /Duo|Pair|Combo/i } },
+          { caption: { $regex: /Duo|Pair|Combo/i } }
         ]
       },
-      { $set: { category_id: "duo-essence" } }
+      { $set: { category_id: "Duo Essence" } }
     );
 
-    // Final cleanup: Ensure no one is left in old categories
+    // Final cleanup: Anything else that might have old IDs
     await Product.updateMany(
-      { category_id: { $nin: ["knot-theory", "volcanic-soul", "onyx-essence", "duo-essence"] } },
-      { $set: { category_id: "knot-theory" } } // Default
+      { category_id: { $nin: ["The Knot Theory", "Volcanic Soul", "The Onyx Essence", "Duo Essence"] } },
+      { $set: { category_id: "The Knot Theory" } }
     );
 
-    console.log("[MIGRATION] Complete.");
+    console.log("[MIGRATION] Targeted update complete.");
 
     return NextResponse.json({ 
-      message: "Data migrated successfully",
+      message: "Data realigned successfully",
       stats: {
-        knotTheory: res1.modifiedCount,
+        knotTheoryTargeted: res1.modifiedCount,
         volcanicSoul: res2.modifiedCount,
         onyxEssence: res3.modifiedCount,
         duoEssence: res4.modifiedCount
       }
     });
   } catch (error: any) {
-    return NextResponse.json({ message: "Error migrating data", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error realigning data", error: error.message }, { status: 500 });
   }
 }

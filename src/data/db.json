@@ -1,32 +1,32 @@
 {
   "categories": [
     {
-      "id": "knot-theory",
+      "id": "The Knot Theory",
       "title": "The Knot Theory",
       "description": "Where precision meets patience — each knot tied by hand, built to stay.",
       "image_url": "/catsection/img1.jpeg",
-      "link": "/shop?category=knot-theory"
+      "link": "/shop?category=The Knot Theory"
     },
     {
-      "id": "volcanic-soul",
+      "id": "Volcanic Soul",
       "title": "Volcanic Soul",
       "description": "Born from fire, worn with intent — raw energy woven into every strand.",
       "image_url": "/catsection/img2.jpeg",
-      "link": "/shop?category=volcanic-soul"
+      "link": "/shop?category=Volcanic Soul"
     },
     {
-      "id": "onyx-essence",
+      "id": "The Onyx Essence",
       "title": "The Onyx Essence",
       "description": "Pure obsidian elegance — a quiet statement that speaks volumes.",
       "image_url": "/catsection/img3.jpeg",
-      "link": "/shop?category=onyx-essence"
+      "link": "/shop?category=The Onyx Essence"
     },
     {
-      "id": "duo-essence",
+      "id": "Duo Essence",
       "title": "Duo Essence",
       "description": "Two souls, one rhythm — handcrafted pairs designed to be worn together.",
       "image_url": "/catsection/img4.jpeg",
-      "link": "/shop?category=duo-essence"
+      "link": "/shop?category=Duo Essence"
     }
   ],
   "products": [

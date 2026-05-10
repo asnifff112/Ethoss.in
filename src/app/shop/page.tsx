@@ -14,10 +14,10 @@ gsap.registerPlugin(ScrollTrigger);
 
 const CATEGORY_MAP: Record<string, string> = {
   "all": "All Collections",
-  "knot-theory": "The Knot Theory",
-  "volcanic-soul": "Volcanic Soul",
-  "onyx-essence": "The Onyx Essence",
-  "duo-essence": "Duo Essence"
+  "The Knot Theory": "The Knot Theory",
+  "Volcanic Soul": "Volcanic Soul",
+  "The Onyx Essence": "The Onyx Essence",
+  "Duo Essence": "Duo Essence"
 };
 
 function ShopContent() {
