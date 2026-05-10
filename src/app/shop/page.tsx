@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { SlidersHorizontal, X, Heart } from "lucide-react";
 import gsap from "gsap";
@@ -12,7 +12,7 @@ import { toast } from "sonner";
 
 gsap.registerPlugin(ScrollTrigger);
 
-export default function ShopPage() {
+function ShopContent() {
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<string[]>(["all"]);
   const [wishlist, setWishlist] = useState<string[]>([]);
@@ -24,6 +24,15 @@ export default function ShopPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const { data: session } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const categoryParam = searchParams.get("category");
+
+  // Handle category from URL
+  useEffect(() => {
+    if (categoryParam) {
+      setCategory(categoryParam);
+    }
+  }, [categoryParam]);
 
   // Fetch products and wishlist
   useEffect(() => {
@@ -354,3 +363,12 @@ export default function ShopPage() {
     </div>
   );
 }
+
+export default function ShopPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-primary/40 tracking-[0.3em] uppercase text-[10px]">Loading Shop...</div>}>
+      <ShopContent />
+    </Suspense>
+  );
+}
+
