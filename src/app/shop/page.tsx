@@ -106,10 +106,12 @@ function ShopContent() {
     }
   };
 
+  const normalize = (str: string) => (str || "").toLowerCase().trim().replace(/-/g, ' ');
+
   let filtered =
     category === "all"
       ? [...products]
-      : products.filter((p) => p.category_id === category);
+      : products.filter((p) => normalize(p.category_id) === normalize(category));
 
   if (sortOrder === "price-asc") {
     filtered.sort((a, b) => a.price - b.price);

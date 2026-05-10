@@ -6,10 +6,10 @@ export async function GET() {
   try {
     await connectToDatabase();
 
-    console.log("[MIGRATION] Starting targeted bulk update...");
+    console.log("[MIGRATION] Final targeted normalization of categories...");
 
-    // 1. TARGETED UPDATE: Specific products to "The Knot Theory"
-    const knotTheoryProducts = [
+    // 1. The Knot Theory (Targeted)
+    const knotTheoryNames = [
       "Crimson Flare Bead",
       "Lagoon Bead",
       "Obsidian Pulse",
@@ -17,67 +17,48 @@ export async function GET() {
       "Lave Bead"
     ];
 
-    const res1 = await Product.updateMany(
-      { name: { $in: knotTheoryProducts } },
+    await Product.updateMany(
+      { name: { $in: knotTheoryNames } },
       { $set: { category_id: "The Knot Theory" } }
     );
 
-    // 2. Generic Mapping for others to ensure they have the new EXACT category names
-    
-    // Volcanic Soul
-    const res2 = await Product.updateMany(
+    // 2. Volcanic Soul
+    await Product.updateMany(
       { 
-        name: { $nin: knotTheoryProducts },
-        $or: [
-          { name: { $regex: /Volcanic/i } },
-          { caption: { $regex: /Volcanic/i } }
+        $and: [
+          { name: { $regex: /Volcanic|Lave/i } },
+          { name: { $nin: knotTheoryNames } }
         ]
       },
       { $set: { category_id: "Volcanic Soul" } }
     );
 
-    // The Onyx Essence
-    const res3 = await Product.updateMany(
+    // 3. The Onyx Essence
+    await Product.updateMany(
       { 
-        name: { $nin: knotTheoryProducts },
-        $or: [
-          { name: { $regex: /Onyx|Black/i } },
-          { caption: { $regex: /Onyx|Black/i } }
+        $and: [
+          { name: { $regex: /Onyx|Black|Obsidian|Midnight/i } },
+          { name: { $nin: knotTheoryNames } }
         ]
       },
       { $set: { category_id: "The Onyx Essence" } }
     );
 
-    // Duo Essence
-    const res4 = await Product.updateMany(
+    // 4. Duo Essence
+    await Product.updateMany(
       { 
-        name: { $nin: knotTheoryProducts },
-        $or: [
-          { name: { $regex: /Duo|Pair|Combo/i } },
-          { caption: { $regex: /Duo|Pair|Combo/i } }
+        $and: [
+          { name: { $regex: /Duo|Combo|Pair|Lagoon/i } },
+          { name: { $nin: knotTheoryNames } }
         ]
       },
       { $set: { category_id: "Duo Essence" } }
     );
 
-    // Final cleanup: Anything else that might have old IDs
-    await Product.updateMany(
-      { category_id: { $nin: ["The Knot Theory", "Volcanic Soul", "The Onyx Essence", "Duo Essence"] } },
-      { $set: { category_id: "The Knot Theory" } }
-    );
+    console.log("[MIGRATION] Complete.");
 
-    console.log("[MIGRATION] Targeted update complete.");
-
-    return NextResponse.json({ 
-      message: "Data realigned successfully",
-      stats: {
-        knotTheoryTargeted: res1.modifiedCount,
-        volcanicSoul: res2.modifiedCount,
-        onyxEssence: res3.modifiedCount,
-        duoEssence: res4.modifiedCount
-      }
-    });
+    return NextResponse.json({ message: "Data normalized successfully" });
   } catch (error: any) {
-    return NextResponse.json({ message: "Error realigning data", error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Error normalizing data", error: error.message }, { status: 500 });
   }
 }
