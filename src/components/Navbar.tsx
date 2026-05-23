@@ -144,7 +144,7 @@ export default function Navbar() {
               </Link>
             </div>
 
-            <div className="flex items-center justify-end gap-1 sm:gap-3 ml-auto relative z-[110] pointer-events-auto">
+            <div className="hidden md:flex items-center justify-end gap-1 sm:gap-3 ml-auto relative z-[110] pointer-events-auto">
               <Link 
                 href={isLoggedIn ? "/profile" : "/login"} 
                 className="text-primary hover:text-primary/70 transition-all cursor-pointer pointer-events-auto min-h-[48px] min-w-[48px] flex items-center justify-center"
